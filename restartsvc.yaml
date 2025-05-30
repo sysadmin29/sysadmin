@@ -1,8 +1,7 @@
----
-- name: Restart Print Spooler on Windows
-  hosts: windows
-  tasks:
-    - name: Restart Print Spooler
-      win_service:
-        name: Spooler
-        state: restarted
+all:
+  hosts:
+    windows-server:
+      ansible_host: 192.168.1.10
+      ansible_user: Administrator
+      ansible_password: YourPassword
+      ansible_connection: winrm
