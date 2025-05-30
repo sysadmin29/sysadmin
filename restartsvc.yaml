@@ -1,7 +1,7 @@
 all:
   hosts:
     windows-server:
-      ansible_host: 192.168.1.10
+      ansible_host: 10.50.20.53
       ansible_user: Administrator
-      ansible_password: YourPassword
+      ansible_password: Love2eat
       ansible_connection: winrm
