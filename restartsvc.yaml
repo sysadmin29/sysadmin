@@ -1,0 +1,8 @@
+---
+- name: Restart Print Spooler on Windows
+  hosts: windows
+  tasks:
+    - name: Restart Print Spooler
+      win_service:
+        name: Spooler
+        state: restarted
