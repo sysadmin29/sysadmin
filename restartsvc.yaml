@@ -1,6 +1,6 @@
 ---
 - name: Restart Print Spooler on Windows
-  hosts: windows
+  hosts: AURA-DC-01
   tasks:
     - name: Restart Print Spooler
       win_service:
