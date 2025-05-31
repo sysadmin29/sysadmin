@@ -1,6 +1,6 @@
 ---
 - name: Restart Print Spooler on Windows Server
-  hosts: 10.50.20.53
+  hosts: win01
   tasks: 
     - name: Restart Print Spooler
       win_service:
