@@ -1,0 +1,10 @@
+[windows]
+10.50.20.53
+
+[windows:vars]
+ansible_user=Administrator
+ansible_password=Love2eat
+ansible_connection=winrm
+ansible_winrm_transport=ntlm
+ansible_port=5985
+ansible_winrm_server_cert_validation=ignore
