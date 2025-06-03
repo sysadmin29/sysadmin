@@ -1,0 +1,14 @@
+---
+- name: Get MAC address from Windows Server
+  hosts: windows
+  gather_facts: no
+
+  tasks:
+    - name: Get MAC address using PowerShell
+      win_shell: |
+        Get-NetAdapter | Select-Object -Property Name, MacAddress
+      register: mac_info
+
+    - name: Display MAC address
+      debug:
+        var: mac_info.stdout_lines
