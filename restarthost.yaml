@@ -1,0 +1,8 @@
+---
+- name: Restart Windows Server
+  hosts: 10.50.20.53
+  gather_facts: no
+  tasks:
+    - name: Restart the Windows Server
+      win_reboot:
+        reboot_timeout: 600
