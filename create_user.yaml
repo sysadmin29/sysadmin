@@ -1,6 +1,6 @@
 ---
 - name: Create an AD User with Ansible
-  hosts: windows
+  hosts: 10.50.20.53
   gather_facts: no
   tasks:
     - name: Create Active Directory User
