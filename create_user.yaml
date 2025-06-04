@@ -8,10 +8,13 @@
         identity: marie
         name: marie
         firstname: Marie
-        lastname: Floria
-        display name: Marie Floria
+        surname: Floria
+        display_name: Marie Floria
         upn: marie@aura.local
         password: Welcome1
         enabled: yes
         state: present
         path: "OU=Users,OU=KMC,DC=aura,DC=local"
+        email: marieflora@outlook.com
+        description: Client
+        company: aura
