@@ -4,7 +4,7 @@
   gather_facts: no
   tasks:
    - name: Get LAPS password from AD
-  win_shell: |
+     win_shell: |
     try {
         $computer = Get-ADComputer -Identity "AURA-VEEAM-01" -Properties ms-Mcs-AdmPwd
         if ($computer -ne $null) {
