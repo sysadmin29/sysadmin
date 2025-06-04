@@ -1,6 +1,6 @@
 ---
 - name: Retrieve LAPS password
-  hosts: aura.local
+  hosts: windows
   gather_facts: no
   tasks:
     - name: Get LAPS password from AD
