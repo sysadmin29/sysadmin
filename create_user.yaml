@@ -20,5 +20,5 @@
         description: Client
         company: aura
         attributes:
-          telephoneNumber: "99999999"
-          physicalDeliveryOfficeName: "HQ Office"
+          telephoneNumber: 99999999
+          physicalDeliveryOfficeName: HQ Office
