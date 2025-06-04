@@ -7,7 +7,9 @@
       win_shell: |
         try {
             Import-Module LAPS
-            $lapsPassword = Get-LapsADPassword -Identity "AURA-VEEAM-01"
+            $computerName = "AURA-VEEAM-01"
+            $lapsPassword = Get-LapsADPassword -Identity $computerName
+
             if ($lapsPassword -ne $null) {
                 $plainPassword = $lapsPassword.Password
                 # Check if password is a SecureString and convert it if needed
@@ -16,10 +18,16 @@
                     $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
                 }
 
+                # Convert ExpirationTimestamp to readable string if possible
+                $expiration = $lapsPassword.ExpirationTimestamp
+                if ($expiration -is [datetime]) {
+                    $expiration = $expiration.ToString("yyyy-MM-dd HH:mm:ss")
+                }
+
                 $result = [PSCustomObject]@{
-                    Name = $lapsPassword.Name
+                    Name = $computerName
                     Password = $plainPassword
-                    ExpirationTimestamp = $lapsPassword.ExpirationTimestamp
+                    ExpirationTimestamp = $expiration
                 }
                 $result | ConvertTo-Json
             } else {
