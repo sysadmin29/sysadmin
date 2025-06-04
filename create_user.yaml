@@ -7,7 +7,7 @@
       microsoft.ad.user:
         identity: marie
         name: Marie Floria
-        user_principal_name: marie@yourdomain.com
+        upn: marie@yourdomain.com
         password: Welcome1
         enabled: yes
         state: present
