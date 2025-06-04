@@ -3,12 +3,11 @@
   hosts: windows
   gather_facts: no
   tasks:
-    - name: Create Active Directory User
-      community.windows.win_domain_user:
-        name: marie
-        firstname: Marie
-        surname: Floria
+    - name: Ensure Marie Floria exists
+      microsoft.ad.user:
+        identity: marie
+        name: Marie Floria
         user_principal_name: marie@yourdomain.com
         password: Welcome1
-        state: present
         enabled: yes
+        state: present
