@@ -5,8 +5,8 @@
   tasks:
     - name: Ensure Marie Floria exists
       microsoft.ad.user:
-        identity: Marie Floria
-        name: marie
+        identity: marie
+        name: Marie Floria
         firstname: Marie
         surname: Floria
         display_name: Marie Floria
