@@ -11,3 +11,4 @@
         password: Welcome1
         enabled: yes
         state: present
+        path: "OU=Users,OU=KMC,DC=aura,DC=local"
