@@ -9,9 +9,16 @@
             Import-Module LAPS
             $lapsPassword = Get-LapsADPassword -Identity "AURA-VEEAM-01"
             if ($lapsPassword -ne $null) {
+                $plainPassword = $lapsPassword.Password
+                # Check if password is a SecureString and convert it if needed
+                if ($plainPassword -is [System.Security.SecureString]) {
+                    $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($plainPassword)
+                    $plainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+                }
+
                 $result = [PSCustomObject]@{
                     Name = $lapsPassword.Name
-                    Password = $lapsPassword.Password
+                    Password = $plainPassword
                     ExpirationTimestamp = $lapsPassword.ExpirationTimestamp
                 }
                 $result | ConvertTo-Json
