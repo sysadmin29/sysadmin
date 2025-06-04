@@ -6,8 +6,11 @@
     - name: Ensure Marie Floria exists
       microsoft.ad.user:
         identity: marie
-        name: Marie Floria
-        upn: marie@yourdomain.com
+        name: marie
+        firstname: Marie
+        lastname: Floria
+        display name: Marie Floria
+        upn: marie@aura.local
         password: Welcome1
         enabled: yes
         state: present
