@@ -1,0 +1,14 @@
+---
+- name: Create an AD User with Ansible
+  hosts: windows
+  gather_facts: no
+  tasks:
+    - name: Create Active Directory User
+      community.windows.win_domain_user:
+        name: marie
+        firstname: Marie
+        surname: Floria
+        user_principal_name: marie@yourdomain.com
+        password: Welcome1
+        state: present
+        enabled: yes
