@@ -3,7 +3,7 @@
   hosts: windows
   gather_facts: no
   tasks:
-    - name: Ensure Marie Floria exists
+    - name: User Added
       microsoft.ad.user:
         identity: marie
         name: Marie Floria
