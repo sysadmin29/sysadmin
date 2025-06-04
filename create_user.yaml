@@ -7,6 +7,7 @@
       microsoft.ad.user:
         identity: marie
         name: Marie Floria
+        sam_account_name: marie
         firstname: Marie
         surname: Floria
         display_name: Marie Floria
