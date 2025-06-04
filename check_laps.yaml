@@ -1,32 +1,32 @@
 ---
-- name: Retrieve LAPS password
+- name: Get LAPS password from AD
   hosts: windows
   gather_facts: no
   tasks:
-   - name: Get LAPS password from AD
-     win_shell: |
-    try {
-        $computer = Get-ADComputer -Identity "AURA-VEEAM-01" -Properties ms-Mcs-AdmPwd
-        if ($computer -ne $null) {
-            $result = [PSCustomObject]@{
-                Name = $computer.Name
-                Password = $computer."ms-Mcs-AdmPwd"
+    - name: Retrieve LAPS password
+      win_shell: |
+        try {
+            $computer = Get-ADComputer -Identity "AURA-VEEAM-01" -Properties ms-Mcs-AdmPwd
+            if ($computer -ne $null) {
+                $result = [PSCustomObject]@{
+                    Name = $computer.Name
+                    Password = $computer."ms-Mcs-AdmPwd"
+                }
+                $result | ConvertTo-Json
+            } else {
+                $errorObj = [PSCustomObject]@{
+                    error = "Computer not found"
+                }
+                $errorObj | ConvertTo-Json
             }
-            $result | ConvertTo-Json
-        } else {
+        } catch {
             $errorObj = [PSCustomObject]@{
-                error = "Computer not found"
+                error = $_.Exception.Message
             }
             $errorObj | ConvertTo-Json
         }
-    } catch {
-        $errorObj = [PSCustomObject]@{
-            error = $_.Exception.Message
-        }
-        $errorObj | ConvertTo-Json
-    }
-  register: laps_password_output
+      register: laps_password_output
 
-- name: Display LAPS password (or error)
-  debug:
-    var: laps_password_output.stdout | from_json
+    - name: Display LAPS password
+      debug:
+        msg: "{{ laps_password_output.stdout | from_json }}"
