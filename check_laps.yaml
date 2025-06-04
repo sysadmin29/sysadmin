@@ -1,21 +1,23 @@
 ---
-- name: Get LAPS password from AD
+- name: Get Windows LAPS password from AD
   hosts: windows
   gather_facts: no
   tasks:
     - name: Retrieve LAPS password
       win_shell: |
         try {
-            $computer = Get-ADComputer -Identity "AURA-VEEAM-01" -Properties ms-Mcs-AdmPwd
-            if ($computer -ne $null) {
+            Import-Module LAPS
+            $lapsPassword = Get-LapsADPassword -Identity "AURA-VEEAM-01"
+            if ($lapsPassword -ne $null) {
                 $result = [PSCustomObject]@{
-                    Name = $computer.Name
-                    Password = $computer."ms-Mcs-AdmPwd"
+                    Name = $lapsPassword.Name
+                    Password = $lapsPassword.Password
+                    ExpirationTimestamp = $lapsPassword.ExpirationTimestamp
                 }
                 $result | ConvertTo-Json
             } else {
                 $errorObj = [PSCustomObject]@{
-                    error = "Computer not found"
+                    error = "No LAPS password found"
                 }
                 $errorObj | ConvertTo-Json
             }
