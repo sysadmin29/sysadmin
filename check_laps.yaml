@@ -1,6 +1,6 @@
 ---
 - name: Retrieve LAPS password
-  hosts: domain_controller
+  hosts: aura.local
   gather_facts: no
   tasks:
     - name: Get LAPS password from AD
