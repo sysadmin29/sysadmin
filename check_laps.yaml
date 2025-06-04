@@ -1,0 +1,14 @@
+---
+- name: Retrieve LAPS password
+  hosts: domain_controller
+  gather_facts: no
+  tasks:
+    - name: Get LAPS password from AD
+      win_shell: |
+        $computer = Get-ADComputer -Identity "AURA-VEEAM-01" -Properties ms-Mcs-AdmPwd
+        $computer | Select-Object Name, ms-Mcs-AdmPwd | ConvertTo-Json
+      register: laps_password_output
+
+    - name: Display LAPS password
+      debug:
+        var: laps_password_output.stdout | from_json
