@@ -17,7 +17,7 @@
         state: present
         path: "OU=Users,OU=MDS,DC=aura,DC=local"
         email: cdr@outlook.com
-        description: Client
+        description: Systems Engineer
         company: aura
         attributes:
           set:
