@@ -28,7 +28,7 @@
       set_fact:
         sam_account_name: "test2"
 
-    - name: Add user to group
+    - name: Add user to group Local Administrator
       microsoft.ad.group:
         name: "IT_LA"
         path: "OU=Security Group,OU=KMC,DC=aura,DC=local"
@@ -37,7 +37,7 @@
             - "{{ sam_account_name }}"
         state: present
 
-    - name: Add user to group
+    - name: Add user to group NOC Team
       microsoft.ad.group:
         name: "IT_NOC"
         path: "OU=Security Group,OU=KMC,DC=aura,DC=local"
