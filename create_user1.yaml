@@ -18,7 +18,6 @@
         path: "OU=Users,OU=KMC,DC=aura,DC=local"
         email: test1@outlook.com
         description: Client
-        company: aura
         attributes:
           set:
             telephoneNumber: 99999999
