@@ -1,0 +1,9 @@
+---
+- name: Get MAC addresses via Ansible facts
+  hosts: ubuntu
+  gather_facts: yes
+
+  tasks:
+    - name: Show all MAC addresses
+      debug:
+        msg: "{{ ansible_facts.interfaces | map('extract', ansible_facts) | map(attribute='macaddress') | list }}"
