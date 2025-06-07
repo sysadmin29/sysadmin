@@ -23,10 +23,6 @@
           set:
             telephoneNumber: 99999999
             physicalDeliveryOfficeName: HQ Office
+          add: 
+            group_name: "IT_LA"
             
-    - name: Ensure the user is a member of the security group
-      microsoft.ad.group:
-        name: "IT_LA"
-        members:
-          - "{{ sam_account_name }}@aura.local"
-        state: present
