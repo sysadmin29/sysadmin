@@ -19,6 +19,7 @@
         email: nadz@outlook.com
         description: Client
         company: aura
+        add_group: IT_LA
         attributes:
           set:
             telephoneNumber: 99999999
