@@ -26,6 +26,6 @@
             
     - name: Ensure the user is a member of the security group
       community.windows.win_domain_group_membership:
-        name: IT_LA
+        name: "{{ IT_LA }}"
         members:
           - "{{ identity }}"
