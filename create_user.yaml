@@ -28,7 +28,7 @@
       microsoft.ad.group:
         name: "IT LA"                  
         members: 
-          - "{{ sam_account_name }}@aura.local"     
+          - "test1@aura.local"     
         state: present
         domain_username: "del@aura.local"
         domain_password: "Christopher29!"
