@@ -1,0 +1,37 @@
+- name: Create an AD User with Ansible
+  hosts: windows
+  gather_facts: no
+  tasks:
+    - name: Create user in AD
+      microsoft.ad.user:
+        identity: test1
+        name: test1
+        sam_account_name: test1
+        firstname: test1
+        surname: test1
+        display_name: test1
+        upn: test1@aura.local
+        password: Welcome1
+        enabled: yes
+        state: present
+        path: "OU=Users,OU=KMC,DC=aura,DC=local"
+        email: test1@outlook.com
+        description: Client
+        company: aura
+        attributes:
+          set:
+            telephoneNumber: 99999999
+            physicalDeliveryOfficeName: HQ Office
+
+    - name: Set sam_account_name variable
+      set_fact:
+        sam_account_name: "test1"
+
+    - name: Add user to group
+      microsoft.ad.group:
+        name: "IT LA"
+        add:
+          - "{{ sam_account_name }}"
+        state: present
+        domain_username: "del@aura.local"
+        domain_password: "Christopher29!"
