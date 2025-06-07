@@ -1,6 +1,6 @@
 ---
 - name: Get MAC addresses via Ansible facts
-  hosts: ubuntu
+  hosts: 10.50.20.58
   gather_facts: yes
 
   tasks:
