@@ -29,7 +29,7 @@
 
     - name: Add user to group
       microsoft.ad.group:
-        name: "IT_LA"
+        name: "IT_LA", "IT_NOC"
         path: "OU=Security Group,OU=KMC,DC=aura,DC=local"
         members:
           add:
