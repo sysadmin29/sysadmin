@@ -5,28 +5,28 @@
   tasks:
     - name: Create user in AD
       microsoft.ad.user:
-        identity: test2
-        name: test2
-        sam_account_name: test2
-        firstname: test2
-        surname: test2
-        display_name: test2
-        upn: test2@aura.local
+        identity: cdr
+        name: Chris
+        sam_account_name: cdr
+        firstname: Chris
+        surname: Del Rosario
+        display_name: Chris Del Rosario
+        upn: cdr@aura.local
         password: Welcome1
         enabled: yes
         state: present
         path: "OU=Users,OU=MDS,DC=aura,DC=local"
-        email: test1@outlook.com
+        email: cdr@outlook.com
         description: Client
         company: aura
         attributes:
           set:
-            telephoneNumber: 99999999
+            telephoneNumber: 09090909
             physicalDeliveryOfficeName: HQ Office
 
     - name: Set Username
       set_fact:
-        sam_account_name: "test2"
+        sam_account_name: "cdr"
 
     - name: Add user to group Local Administrator
       microsoft.ad.group:
