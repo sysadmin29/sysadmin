@@ -8,15 +8,20 @@
       win_shell: hostname
       register: hostname_result
 
-    - name: Get MAC address using PowerShell
+    - name: Get MAC address using PowerShell and convert to JSON
       win_shell: |
-        Get-NetAdapter | Select-Object -Property Name, MacAddress
-      register: mac_info
+        Get-NetAdapter | Select-Object -Property Name, MacAddress | ConvertTo-Json
+      register: mac_info_json
 
-    - name: Display hostname
-      debug:
-        msg: "Hostname: {{ hostname_result.stdout }}"
+    - name: Parse MAC info JSON
+      set_fact:
+        mac_info: "{{ mac_info_json.stdout | from_json }}"
 
-    - name: Display MAC address
+    - name: Display hostname and MAC addresses
       debug:
-        var: mac_info.stdout_lines
+        msg: |
+          Hostname: {{ hostname_result.stdout }}
+          MAC Addresses:
+          {% for adapter in mac_info %}
+            - {{ adapter.Name }} : {{ adapter.MacAddress }}
+          {% endfor %}
