@@ -1,6 +1,6 @@
 ---
 - name: Check MAC address on Ubuntu
-  hosts: ubuntu
+  hosts: 10.50.20.58
   gather_facts: yes  # Automatically gathers facts, including MAC addresses
 
   tasks:
