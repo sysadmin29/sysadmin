@@ -27,10 +27,10 @@
       - name: Add user to group
         microsoft.ad.group:
          name: "IT LA"                  
-        members:
+         members:
           - "test1@aura.local"        
         state: present
-        domain_username: "admin@aura.local"
-        domain_password: "YourPassword"
+        domain_username: "del@aura.local"
+        domain_password: "Christopher29!"
 
             
