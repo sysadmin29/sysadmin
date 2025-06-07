@@ -26,6 +26,6 @@
             
     - name: Ensure the user is a member of the security group
       microsoft.ad.group:
-        name: "IT_LA"
+        name: IT_LA
         members:
-          - "{{ identity }}"
+          - "{{ sam_account_name }}"
