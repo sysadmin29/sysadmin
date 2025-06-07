@@ -8,9 +8,9 @@
       win_shell: hostname
       register: hostname_result
 
-    - name: Get MAC address using PowerShell and convert to JSON
+    - name: Get MAC address using PowerShell and convert to JSON (always array)
       win_shell: |
-        Get-NetAdapter | Select-Object -Property Name, MacAddress | ConvertTo-Json
+        @(Get-NetAdapter | Select-Object -Property Name, MacAddress) | ConvertTo-Json
       register: mac_info_json
 
     - name: Parse MAC info JSON
