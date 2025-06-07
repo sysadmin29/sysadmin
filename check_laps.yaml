@@ -7,7 +7,7 @@
       win_shell: |
         try {
             Import-Module LAPS
-            $computerName = "AURA-VEEAM-01"
+            $computerName = "AURA-VEEAM-02"
             $lapsPassword = Get-LapsADPassword -Identity $computerName
 
             if ($lapsPassword -ne $null) {
