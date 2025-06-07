@@ -24,7 +24,7 @@
             telephoneNumber: 99999999
             physicalDeliveryOfficeName: HQ Office
 
-    - name: Set sam_account_name variable
+    - name: Set Username
       set_fact:
         sam_account_name: "test2"
 
