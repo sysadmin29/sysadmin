@@ -23,14 +23,3 @@
           set:
             telephoneNumber: 99999999
             physicalDeliveryOfficeName: HQ Office
-            
-    - name: Add user to group
-      microsoft.ad.group:
-        name: "IT LA"
-        members:
-          "{{ sam_account_name }}": present
-        state: present
-        domain_username: "del@aura.local"
-        domain_password: "Christopher29!"
-
-            
