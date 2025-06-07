@@ -23,6 +23,14 @@
           set:
             telephoneNumber: 99999999
             physicalDeliveryOfficeName: HQ Office
-          add: 
-            group_name: "IT_LA"
+            
+      - name: Add user to group
+        microsoft.ad.group:
+         name: "IT LA"                  
+        members:
+          - "test1@aura.local"        
+        state: present
+        domain_username: "admin@aura.local"
+        domain_password: "YourPassword"
+
             
