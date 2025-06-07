@@ -5,18 +5,18 @@
   tasks:
     - name: User Added
       microsoft.ad.user:
-        identity: nadz
-        name: Nadz Mekhan
-        sam_account_name: nadz
-        firstname: Nadz
-        surname: Mekhan
-        display_name: Nadz Mekhan
-        upn: nadz@aura.local
+        identity: test1
+        name: test1
+        sam_account_name: test1
+        firstname: test1
+        surname: test1
+        display_name: test1
+        upn: test1@aura.local
         password: Welcome1
         enabled: yes
         state: present
         path: "OU=Users,OU=KMC,DC=aura,DC=local"
-        email: nadz@outlook.com
+        email: test1@outlook.com
         description: Client
         company: aura
         add_group: IT_LA
