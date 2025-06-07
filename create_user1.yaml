@@ -31,6 +31,16 @@
     - name: Add user to group
       microsoft.ad.group:
         name: "IT_LA"
+        path: "OU=Security Group,OU=KMC,DC=aura,DC=local"
+        members:
+          add:
+            - "{{ sam_account_name }}"
+        state: present
+        domain_username: "del@aura.local"
+        domain_password: "Christopher29!"
+
+    - name: Add user to group
+      microsoft.ad.group:
         name: "IT_NOC"
         path: "OU=Security Group,OU=KMC,DC=aura,DC=local"
         members:
