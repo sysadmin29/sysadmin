@@ -27,7 +27,7 @@
       set_fact:
         sam_account_name: "cdr"
 
-    - name: Add user to group Local Administrator
+    - name: Add user to group MIS
       microsoft.ad.group:
         name: "MDS_MIS"
         path: "OU=Security Group,OU=MDS,DC=aura,DC=local"
@@ -36,7 +36,7 @@
             - "{{ sam_account_name }}"
         state: present
 
-    - name: Add user to group NOC Team
+    - name: Add user to group NDC
       microsoft.ad.group:
         name: "MDS_NDC"
         path: "OU=Security Group,OU=MDS,DC=aura,DC=local"
