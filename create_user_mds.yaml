@@ -18,7 +18,6 @@
         path: "OU=Users,OU=MDS,DC=aura,DC=local"
         email: cdr@outlook.com
         description: Systems Engineer
-        company: aura
         attributes:
           set:
             telephoneNumber: 09090909
