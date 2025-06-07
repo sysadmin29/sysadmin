@@ -6,7 +6,7 @@
   tasks:
     - name: Get MAC address using PowerShell
       win_shell: |
-        Get-NetAdapter | Select-Object -Property Name, MacAddress
+        Get-NetAdapter | Select-Object -Property Name, hostname
       register: mac_info
 
     - name: Display MAC address
