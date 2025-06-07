@@ -27,8 +27,8 @@
     - name: Add user to group
       microsoft.ad.group:
         name: "IT LA"                  
-        add: 
-          - "{{ sam_account_name }}"     
+        members: 
+          - "{{ sam_account_name }}@aura.local"     
         state: present
         domain_username: "del@aura.local"
         domain_password: "Christopher29!"
