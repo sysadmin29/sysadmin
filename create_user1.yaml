@@ -30,6 +30,7 @@
     - name: Add user to group
       microsoft.ad.group:
         name: "IT LA"
+        scope: Global
         members:
           add:
             - "{{ sam_account_name }}"
