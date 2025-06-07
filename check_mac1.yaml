@@ -1,0 +1,27 @@
+---
+- name: Get MAC address and hostname from Windows Server
+  hosts: windows
+  gather_facts: no
+
+  tasks:
+    - name: Get hostname
+      win_shell: hostname
+      register: hostname_result
+
+    - name: Get MAC addresses using PowerShell
+      win_shell: |
+        Get-NetAdapter | Select-Object -Property Name, MacAddress | ConvertTo-Json
+      register: mac_info_json
+
+    - name: Parse MAC info JSON
+      set_fact:
+        mac_info: "{{ mac_info_json.stdout | from_json }}"
+
+    - name: Display hostname and MAC addresses
+      debug:
+        msg: |
+          Hostname: {{ hostname_result.stdout }}
+          MAC Addresses:
+          {% for adapter in mac_info %}
+            - {{ adapter.Name }} : {{ adapter.MacAddress }}
+          {% endfor %}
