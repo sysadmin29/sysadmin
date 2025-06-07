@@ -30,7 +30,7 @@
 
     - name: Add user to group Local Administrator
       microsoft.ad.group:
-        name: "IT_LA"
+        name: "MDS_MIS"
         path: "OU=Security Group,OU=MDS,DC=aura,DC=local"
         members:
           add:
@@ -39,7 +39,7 @@
 
     - name: Add user to group NOC Team
       microsoft.ad.group:
-        name: "IT_NOC"
+        name: "MDS_NDC"
         path: "OU=Security Group,OU=MDS,DC=aura,DC=local"
         members:
           add:
