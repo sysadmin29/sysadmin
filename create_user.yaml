@@ -27,7 +27,7 @@
     - name: Add user to group
       microsoft.ad.group:
         name: "IT LA"                  
-        add: 
+        members: 
           - "test1@aura.local": present    
         state: present
         domain_username: "del@aura.local"
