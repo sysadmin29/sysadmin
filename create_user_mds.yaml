@@ -6,7 +6,7 @@
     - name: Create user in AD
       microsoft.ad.user:
         identity: cdr
-        name: Chris
+        name: Chris Del Rosario
         sam_account_name: cdr
         firstname: Chris
         surname: Del Rosario
