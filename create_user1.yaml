@@ -36,8 +36,8 @@
           add:
             - "{{ sam_account_name }}"
         state: present
-        domain_username: "del@aura.local"
-        domain_password: "Christopher29!"
+     #   domain_username: "del@aura.local"
+      #  domain_password: "Christopher29!"
 
     - name: Add user to group
       microsoft.ad.group:
@@ -47,5 +47,5 @@
           add:
             - "{{ sam_account_name }}"
         state: present
-        domain_username: "del@aura.local"
-        domain_password: "Christopher29!"
+      #  domain_username: "del@aura.local"
+      #  domain_password: "Christopher29!"
