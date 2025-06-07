@@ -29,8 +29,8 @@
         name: "IT LA"                  
         members:
          - "test1@aura.local"        
-        state: present
-        domain_username: "del@aura.local"
-        domain_password: "Christopher29!"
+      #  state: present
+      #  domain_username: "del@aura.local"
+      #  domain_password: "Christopher29!"
 
             
