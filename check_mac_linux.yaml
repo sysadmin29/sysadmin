@@ -1,17 +1,11 @@
----
-- name: Check MAC address on Ubuntu
-  hosts: 10.50.20.58
-  gather_facts: yes  # Automatically gathers facts, including MAC addresses
+- name: Show MAC addresses on Linux hosts
+  hosts: ubuntu
+  gather_facts: yes
 
   tasks:
-    - name: Display host's MAC addresses
-      debug:
-        var: ansible_interfaces
-
     - name: Display MAC addresses of all interfaces
       debug:
         msg: |
           {% for iface in ansible_interfaces %}
-            Interface: {{ iface }}
-            MAC Address: {{ hostvars[inventory_hostname]['ansible_' + iface]['macaddress'] }}
+          Interface {{ iface }}: {{ hostvars[inventory_hostname]['ansible_' + iface].macaddress | default('N/A') }}
           {% endfor %}
