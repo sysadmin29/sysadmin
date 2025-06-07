@@ -1,3 +1,4 @@
+---
 - name: Create an AD User with Ansible
   hosts: windows
   gather_facts: no
