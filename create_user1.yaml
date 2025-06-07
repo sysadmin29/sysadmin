@@ -29,7 +29,7 @@
 
     - name: Add user to group
       microsoft.ad.group:
-        name: "IT LA"
+        name: "IT_LA"
         scope: Global
         members:
           add:
