@@ -19,7 +19,7 @@
         email: test1@outlook.com
         description: Client
         company: aura
-        add_group: IT_LA
+        community.windows.win_domain_group_membership: IT_LA
         attributes:
           set:
             telephoneNumber: 99999999
