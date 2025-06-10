@@ -1,0 +1,52 @@
+---
+- hosts: windows
+  gather_facts: no # Disable fact gathering to speed up execution
+  tasks:
+    - name: Get CPU load percentage
+      win_shell: (Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average
+      register: cpu_load_raw
+
+    - name: Set CPU Load Percentage variable
+      set_fact:
+        cpu_load_percentage: "{{ cpu_load_raw.stdout | float | round(2) }}"
+
+    - name: Get free physical memory (in KB)
+      win_shell: (Get-WmiObject Win32_OperatingSystem).FreePhysicalMemory
+      register: free_mem_raw
+
+    - name: Get total physical memory (in KB)
+      win_shell: (Get-WmiObject Win32_OperatingSystem).TotalPhysicalMemory
+      register: total_mem_raw
+
+    - name: Set Free Physical Memory variable (in MB)
+      set_fact:
+        free_physical_memory_mb: "{{ (free_mem_raw.stdout | int / 1024) | float | round(2) }}"
+
+    - name: Set Total Physical Memory variable (in MB)
+      set_fact:
+        total_physical_memory_mb: "{{ (total_mem_raw.stdout | int / 1024) | float | round(2) }}"
+
+    - name: Calculate Used Memory and Usage Percentage
+      set_fact:
+        used_physical_memory_mb: "{{ (total_physical_memory_mb - free_physical_memory_mb) | float | round(2) }}"
+        memory_usage_percentage: "{{ ((total_physical_memory_mb - free_physical_memory_mb) / total_physical_memory_mb * 100) | float | round(2) }}"
+
+    - name: Display CPU load percentage
+      debug:
+        msg: "CPU Load Percentage: {{ cpu_load_percentage }}%"
+
+    - name: Display free physical memory
+      debug:
+        msg: "Free Physical Memory: {{ free_physical_memory_mb }} MB"
+
+    - name: Display total physical memory
+      debug:
+        msg: "Total Physical Memory: {{ total_physical_memory_mb }} MB"
+
+    - name: Display used physical memory
+      debug:
+        msg: "Used Physical Memory: {{ used_physical_memory_mb }} MB"
+
+    - name: Display memory usage percentage
+      debug:
+        msg: "Memory Usage Percentage: {{ memory_usage_percentage }}%"
