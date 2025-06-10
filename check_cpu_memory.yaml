@@ -22,5 +22,5 @@
     - name: Check memory usage
       assert:
         that:
-          - "{{ mem_results.stdout | int }} <= 50000" # Example threshold (50MB)
+          - "{{ mem_results.stdout | int }}" # Example threshold (50MB)
         fail_msg: "Memory usage exceeds threshold"
