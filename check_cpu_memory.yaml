@@ -26,7 +26,7 @@
       debug:
         msg: "Free Physical Memory: {{ free_physical_memory_mb }} MB"
 
-    - name: Check CPU load percentage (Example: fail if > 80%)
+    - name: Check CPU load percentage # (Example: fail if > 80%)
       assert:
         that:
           - cpu_load_percentage <= 80
