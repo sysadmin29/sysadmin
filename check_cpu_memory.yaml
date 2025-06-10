@@ -38,3 +38,11 @@
     - name: Display free physical memory
       debug:
         msg: "Free Physical Memory: {{ free_physical_memory_mb }} MB"
+
+    - name: Display total physical memory # new
+      debug:
+        msg: "Total Physical Memory: {{ total_physical_memory_mb }} MB"
+
+    - name: Display used physical memory # new
+      debug:
+        msg: "Used Physical Memory: {{ used_physical_memory_mb }} MB"
