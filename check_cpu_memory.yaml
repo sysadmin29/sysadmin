@@ -1,0 +1,26 @@
+---
+- hosts: windows_servers
+  gather_facts: no  # Disable fact gathering to speed up execution
+  tasks:
+    - name: Get CPU load percentage
+      win_command: wmic cpu get LoadPercentage
+      register: cpu_results
+
+    - name: Get free physical memory
+      win_command: wmic OS get FreePhysicalMemory /Value
+      register: mem_results
+
+    - name: Display CPU load percentage
+      debug:
+        msg: "CPU Load Percentage: {{ cpu_results.stdout }}"
+
+    - name: Display free physical memory
+      debug:
+        msg: "Free Physical Memory: {{ mem_results.stdout }}"
+
+    # Optional: Check if memory usage is above a threshold
+    - name: Check memory usage
+      assert:
+        that:
+          - "{{ mem_results.stdout | int }} <= 50000" # Example threshold (50MB)
+        fail_msg: "Memory usage exceeds threshold"
