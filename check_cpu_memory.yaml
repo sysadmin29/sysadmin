@@ -33,7 +33,7 @@
         fail_msg: "CPU usage ({{ cpu_load_percentage }}%) exceeds threshold (80%)." # Quoted
         success_msg: "CPU usage ({{ cpu_load_percentage }}%) is within threshold." # Quoted
 
-    - name: Check memory usage (Example: fail if free memory < 1024 MB)
+    - name: Check memory usage # (Example: fail if free memory < 1024 MB)
       assert:
         that:
           - free_physical_memory_mb >= 1024
