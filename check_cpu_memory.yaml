@@ -46,3 +46,7 @@
     - name: Display used physical memory # new
       debug:
         msg: "Used Physical Memory: {{ used_physical_memory_mb }} MB"
+
+    - name: Display memory usage percentage # new
+      debug:
+        msg: "Memory Usage Percentage: {{ memory_usage_percentage }}%"
