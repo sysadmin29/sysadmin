@@ -17,10 +17,9 @@
     - name: Display free physical memory
       debug:
         msg: "Free Physical Memory: {{ mem_results.stdout }}"
-
-    # Optional: Check if memory usage is above a threshold
+        
     - name: Check memory usage
       assert:
         that:
-          - "{{ mem_results.stdout }}" # Example threshold (50MB)
+          - "{{ mem_results.stdout }}"
         fail_msg: "Memory usage exceeds threshold"
