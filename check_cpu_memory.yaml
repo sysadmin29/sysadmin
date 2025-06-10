@@ -12,7 +12,7 @@
 
     - name: Display CPU load percentage
       debug:
-        msg: "CPU Load Percentage: { cpu_results.stdout }"
+        msg: "CPU Load Percentage: {{ cpu_results.stdout }}"
 
     - name: Display free physical memory
       debug:
