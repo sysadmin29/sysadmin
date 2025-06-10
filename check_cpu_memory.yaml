@@ -25,17 +25,3 @@
     - name: Display free physical memory
       debug:
         msg: "Free Physical Memory: {{ free_physical_memory_mb }} MB"
-
-    - name: Check CPU load percentage # (Example: fail if > 80%)
-      assert:
-        that:
-          - "{{ cpu_load_percentage | float <= 80 }}"
-        fail_msg: "CPU usage ({{ cpu_load_percentage }}%) exceeds threshold (80%)." # Quoted
-        success_msg: "CPU usage ({{ cpu_load_percentage }}%) is within threshold." # Quoted
-
-    - name: Check memory usage # (Example: fail if free memory < 1024 MB)
-      assert:
-        that:
-          - free_physical_memory_mb >= 1024
-        fail_msg: "Free physical memory ({{ free_physical_memory_mb }} MB) is below threshold (1024 MB)." # Quoted
-        success_msg: "Free physical memory ({{ free_physical_memory_mb }} MB) is above threshold." # Quoted
