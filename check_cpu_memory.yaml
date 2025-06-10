@@ -16,7 +16,7 @@
 
     - name: Display free physical memory
       debug:
-        msg: "Free Physical Memory: {{ mem_results.stdout }}"
+        msg: "Free Physical Memory: {{ mem_results }}"
 
     # Optional: Check if memory usage is above a threshold
     - name: Check memory usage
