@@ -29,7 +29,7 @@
     - name: Check CPU load percentage # (Example: fail if > 80%)
       assert:
         that:
-          - cpu_load_percentage <= 80
+          - "{{ cpu_load_percentage | float <= 80 }}"
         fail_msg: "CPU usage ({{ cpu_load_percentage }}%) exceeds threshold (80%)." # Quoted
         success_msg: "CPU usage ({{ cpu_load_percentage }}%) is within threshold." # Quoted
 
