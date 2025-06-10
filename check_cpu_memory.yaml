@@ -1,5 +1,5 @@
 ---
-- hosts: windows_servers
+- hosts: windows
   gather_facts: no  # Disable fact gathering to speed up execution
   tasks:
     - name: Get CPU load percentage
