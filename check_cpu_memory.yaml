@@ -14,9 +14,22 @@
       win_shell: (Get-WmiObject Win32_OperatingSystem).FreePhysicalMemory
       register: free_mem_raw
 
+    - name: Get total physical memory (in KB) # new
+      win_shell: (Get-WmiObject Win32_OperatingSystem).TotalPhysicalMemory
+      register: total_mem_raw
+
     - name: Set Free Physical Memory variable (in MB)
       set_fact:
         free_physical_memory_mb: "{{ (free_mem_raw.stdout | int / 1024) | round(2) }}"
+
+    - name: Set Total Physical Memory variable (in MB) # new
+      set_fact:
+        total_physical_memory_mb: "{{ (total_mem_raw.stdout | int / 1024) | float | round(2) }}"
+
+    - name: Calculate Used Memory and Usage Percentage # new
+      set_fact:
+        used_physical_memory_mb: "{{ (total_physical_memory_mb - free_physical_memory_mb) | float | round(2) }}"
+        memory_usage_percentage: "{{ ((total_physical_memory_mb - free_physical_memory_mb) / total_physical_memory_mb * 100) | float | round(2) }}"
 
     - name: Display CPU load percentage
       debug:
