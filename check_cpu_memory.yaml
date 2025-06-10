@@ -29,7 +29,7 @@
     - name: Calculate Used Memory and Usage Percentage # new
       set_fact:
         used_physical_memory_mb: "{{ (total_physical_memory_mb | float - free_physical_memory_mb | float) | round(2) }}"
-        memory_usage_percentage: "{{ ((total_physical_memory_mb - free_physical_memory_mb) / total_physical_memory_mb * 100) | float | round(2) }}"
+        memory_usage_percentage: "{{ ((total_physical_memory_mb | float - free_physical_memory_mb | float) / (total_physical_memory_mb | float) * 100) | round(2) }}"
 
     - name: Display CPU load percentage
       debug:
