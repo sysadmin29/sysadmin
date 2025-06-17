@@ -35,6 +35,18 @@
           {% else %}
           0.0
           {% endif %}
+
+     - name: Get total and free memory in MB
+       win_shell: |
+         $os = Get-CimInstance Win32_OperatingSystem
+         [math]::Round($os.TotalVisibleMemorySize / 1024, 2)
+         [math]::Round($os.FreePhysicalMemory / 1024, 2)
+       register: memory_raw
+
+     - name: Parse memory values
+       set_fact:
+         total_physical_memory_mb: "{{ memory_raw.stdout_lines[0] }}"
+         free_physical_memory_mb: "{{ memory_raw.stdout_lines[1] }}"
       
     - name: Display CPU load percentage
       debug:
