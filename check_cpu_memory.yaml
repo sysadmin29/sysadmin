@@ -8,7 +8,7 @@
 
     - name: Set CPU Load Percentage variable
       set_fact:
-        cpu_load_percentage: "{{ cpu_load_raw.stdout | float | round(2) }}"
+        cpu_load_percentage: "{{ cpu_load_raw.stdout | float | round(0) | int }}"
 
     - name: Get free physical memory (in KB)
       win_shell: (Get-WmiObject Win32_OperatingSystem).FreePhysicalMemory
