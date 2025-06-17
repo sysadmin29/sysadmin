@@ -26,11 +26,16 @@
       set_fact:
         total_physical_memory_mb: "{{ (total_mem_raw.stdout | int / 1024) | float | round(2) }}"
 
-    - name: Calculate Used Memory and Usage Percentage # new
+    - name: Calculate Used Memory and Usage Percentage (safe) # new
       set_fact:
         used_physical_memory_mb: "{{ (total_physical_memory_mb | float - free_physical_memory_mb | float) | round(2) }}"
-        memory_usage_percentage: "{{ ((total_physical_memory_mb | float - free_physical_memory_mb | float) / (total_physical_memory_mb | float)) * 100 | round(2) }}"
-
+        memory_usage_percentage: >-
+          {% if total_physical_memory_mb | float > 0 %}
+          {{ ((total_physical_memory_mb | float - free_physical_memory_mb | float) / total_physical_memory_mb | float * 100) | round(2) }}
+          {% else %}
+          0.0
+          {% endif %}
+      
     - name: Display CPU load percentage
       debug:
         msg: "CPU Load Percentage: {{ cpu_load_percentage }}%"
