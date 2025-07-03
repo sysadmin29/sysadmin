@@ -31,6 +31,11 @@
         Write-Output "used=$used"
         Write-Output "used_percent=$percentUsed"
       register: disk_output
+
+    - name: Get MAC address using PowerShell
+      win_shell: |
+        Get-NetAdapter | Select-Object -Property Name, MacAddress
+      register: mac_info
       
     - name: Set Total and Free Memory facts (MB)
       set_fact:
@@ -71,3 +76,7 @@
         msg: >
           Drive C: Used {{ disk_used_gb }} GB / {{ disk_total_gb }} GB
           ({{ disk_used_percent }}% used)
+
+    - name: Display MAC address
+      debug:
+        var: mac_info.stdout_lines
