@@ -80,4 +80,4 @@
 
     - name: Display MAC address
       debug:
-        var:
+        var: mac_info.stdout_lines
