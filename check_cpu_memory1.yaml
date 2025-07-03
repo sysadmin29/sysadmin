@@ -18,7 +18,7 @@
         Write-Output "total=$total"
         Write-Output "free=$free"
       register: mem_output
-
+      
     - name: Get disk usage for C:
       win_shell: |
         $disk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'"
@@ -30,7 +30,7 @@
         Write-Output "free=$free"
         Write-Output "used=$used"
         Write-Output "used_percent=$percentUsed"
-       register: disk_output
+      register: disk_output
       
     - name: Set Total and Free Memory facts (MB)
       set_fact:
