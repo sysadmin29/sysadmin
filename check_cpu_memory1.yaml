@@ -19,7 +19,7 @@
         Write-Output "free=$free"
       register: mem_output
       
-    - name: Get disk usage for C:
+    - name: Get disk usage for C
       win_shell: |
         $disk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'"
         $total = [math]::Round($disk.Size / 1GB, 2)
