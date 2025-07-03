@@ -1,6 +1,6 @@
 ---
 - hosts: windows
-  gather_facts: no
+  gather_facts: no # Disable fact gathering to speed up execution
   tasks:
     - name: Get CPU load percentage
       win_shell: (Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average
@@ -8,25 +8,36 @@
 
     - name: Set CPU Load Percentage variable
       set_fact:
-        cpu_load_percentage: "{{ cpu_load_raw.stdout | float | round(0) | int }}"
+        cpu_load_percentage: "{{ cpu_load_raw.stdout | float | round(2) }}"
 
-    - name: Get free physical memory (in KB)
-      win_shell: (Get-WmiObject Win32_OperatingSystem).FreePhysicalMemory
-      register: free_mem_raw
-
-    - name: Get total physical memory (in KB) # new
-      win_shell: (Get-WmiObject Win32_OperatingSystem).TotalPhysicalMemory
-      register: total_mem_raw
-
-    - name: Set Free Physical Memory variable (in MB)
+    - name: Get Total and Free Physical Memory (MB)
+      win_shell: |
+        $os = Get-CimInstance Win32_OperatingSystem
+        $total = [math]::Round($os.TotalVisibleMemorySize / 1024, 2)
+        $free = [math]::Round($os.FreePhysicalMemory / 1024, 2)
+        Write-Output "total=$total"
+        Write-Output "free=$free"
+      register: mem_output
+      
+    - name: Get disk usage for C
+      win_shell: |
+        $disk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'"
+        $total = [math]::Round($disk.Size / 1GB, 2)
+        $free = [math]::Round($disk.FreeSpace / 1GB, 2)
+        $used = $total - $free
+        $percentUsed = [math]::Round(($used / $total) * 100, 2)
+        Write-Output "total=$total"
+        Write-Output "free=$free"
+        Write-Output "used=$used"
+        Write-Output "used_percent=$percentUsed"
+      register: disk_output
+      
+    - name: Set Total and Free Memory facts (MB)
       set_fact:
-        free_physical_memory_mb: "{{ (free_mem_raw.stdout | int / 1024) | round(2) }}"
+        total_physical_memory_mb: "{{ mem_output.stdout_lines | select('search', '^total=') | first | regex_replace('^total=', '') | float }}"
+        free_physical_memory_mb: "{{ mem_output.stdout_lines | select('search', '^free=') | first | regex_replace('^free=', '') | float }}"
 
-    - name: Set Total Physical Memory variable (in MB) # new
-      set_fact:
-        total_physical_memory_mb: "{{ (total_mem_raw.stdout | int / 1024) | float | round(2) }}"
-
-    - name: Calculate Used Memory and Usage Percentage (safe) # new
+    - name: Calculate Used Memory and Usage Percentage (safe)
       set_fact:
         used_physical_memory_mb: "{{ (total_physical_memory_mb | float - free_physical_memory_mb | float) | round(2) }}"
         memory_usage_percentage: >-
@@ -35,23 +46,28 @@
           {% else %}
           0.0
           {% endif %}
-          
+
+    - name: Extract disk usage values
+      set_fact:
+        disk_total_gb: "{{ disk_output.stdout_lines | select('search', '^total=') | first | regex_replace('^total=', '') | float }}"
+        disk_free_gb: "{{ disk_output.stdout_lines | select('search', '^free=') | first | regex_replace('^free=', '') | float }}"
+        disk_used_gb: "{{ disk_output.stdout_lines | select('search', '^used=') | first | regex_replace('^used=', '') | float }}"
+        disk_used_percent: "{{ disk_output.stdout_lines | select('search', '^used_percent=') | first | regex_replace('^used_percent=', '') | float }}"
+
     - name: Display CPU load percentage
       debug:
         msg: "CPU Load Percentage: {{ cpu_load_percentage }}%"
 
-    - name: Display free physical memory
+    - name: Show memory usage
       debug:
-        msg: "Free Physical Memory: {{ free_physical_memory_mb }} MB"
+        msg: >
+          Total: {{ total_physical_memory_mb }} MB |
+          Free: {{ free_physical_memory_mb }} MB |
+          Used: {{ used_physical_memory_mb }} MB |
+          Usage: {{ memory_usage_percentage }}%
 
-    - name: Display total physical memory # new
+    - name: Show disk usage
       debug:
-        msg: "Total Physical Memory: {{ total_physical_memory_mb }} MB"
-
-    - name: Display used physical memory # new
-      debug:
-        msg: "Used Physical Memory: {{ used_physical_memory_mb }} MB"
-
-    - name: Display memory usage percentage # new
-      debug:
-        msg: "Memory Usage Percentage: {{ memory_usage_percentage }}%"
+        msg: >
+          Drive C: Used {{ disk_used_gb }} GB / {{ disk_total_gb }} GB
+          ({{ disk_used_percent }}% used)
