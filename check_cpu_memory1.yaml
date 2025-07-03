@@ -34,7 +34,8 @@
 
     - name: Get MAC address using PowerShell
       win_shell: |
-        Get-NetAdapter | Select-Object -Property Name, MacAddress
+        Get-NetAdapter | ForEach-Object {
+        "$($_.Name)=$($_.MacAddress)" }
       register: mac_info
       
     - name: Set Total and Free Memory facts (MB)
