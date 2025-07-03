@@ -13,8 +13,10 @@
     - name: Get Total and Free Physical Memory (MB)
       win_shell: |
         $os = Get-CimInstance Win32_OperatingSystem
-        Write-Output "total={{ [math]::Round($os.TotalVisibleMemorySize / 1024, 2) }}"
-        Write-Output "free={{ [math]::Round($os.FreePhysicalMemory / 1024, 2) }}"
+        $total = [math]::Round($os.TotalVisibleMemorySize / 1024, 2)
+        $free = [math]::Round($os.FreePhysicalMemory / 1024, 2)
+        Write-Output "total=$total"
+        Write-Output "free=$free"
       register: mem_output
       
     - name: Set Total and Free Memory facts (MB)
