@@ -18,6 +18,19 @@
         Write-Output "total=$total"
         Write-Output "free=$free"
       register: mem_output
+
+      - name: Get disk usage for C:
+        win_shell: |
+          $disk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='C:'"
+          $total = [math]::Round($disk.Size / 1GB, 2)
+          $free = [math]::Round($disk.FreeSpace / 1GB, 2)
+          $used = $total - $free
+          $percentUsed = [math]::Round(($used / $total) * 100, 2)
+          Write-Output "total=$total"
+          Write-Output "free=$free"
+          Write-Output "used=$used"
+          Write-Output "used_percent=$percentUsed"
+        register: disk_output
       
     - name: Set Total and Free Memory facts (MB)
       set_fact:
@@ -34,6 +47,13 @@
           0.0
           {% endif %}
 
+    - name: Extract disk usage values
+      set_fact:
+        disk_total_gb: "{{ disk_output.stdout_lines | select('search', '^total=') | first | regex_replace('^total=', '') | float }}"
+        disk_free_gb: "{{ disk_output.stdout_lines | select('search', '^free=') | first | regex_replace('^free=', '') | float }}"
+        disk_used_gb: "{{ disk_output.stdout_lines | select('search', '^used=') | first | regex_replace('^used=', '') | float }}"
+        disk_used_percent: "{{ disk_output.stdout_lines | select('search', '^used_percent=') | first | regex_replace('^used_percent=', '') | float }}"
+
     - name: Display CPU load percentage
       debug:
         msg: "CPU Load Percentage: {{ cpu_load_percentage }}%"
@@ -45,3 +65,9 @@
           Free: {{ free_physical_memory_mb }} MB |
           Used: {{ used_physical_memory_mb }} MB |
           Usage: {{ memory_usage_percentage }}%
+
+    - name: Show disk usage
+      debug:
+        msg: >
+          Drive C: Used {{ disk_used_gb }} GB / {{ disk_total_gb }} GB
+          ({{ disk_used_percent }}% used)
