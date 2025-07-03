@@ -10,43 +10,36 @@
       set_fact:
         cpu_load_percentage: "{{ cpu_load_raw.stdout | float | round(2) }}"
 
-    - name: Get free physical memory (in KB)
-      win_shell: (Get-WmiObject Win32_OperatingSystem).FreePhysicalMemory
-      register: free_mem_raw
-
-    - name: Get total physical memory (in KB)
-      win_shell: (Get-WmiObject Win32_OperatingSystem).TotalPhysicalMemory
-      register: total_mem_raw
-
-    - name: Set Free Physical Memory variable (in MB)
+    - name: Get Total and Free Physical Memory (MB)
+      win_shell: |
+        $os = Get-CimInstance Win32_OperatingSystem
+        Write-Output "total={{ [math]::Round($os.TotalVisibleMemorySize / 1024, 2) }}"
+        Write-Output "free={{ [math]::Round($os.FreePhysicalMemory / 1024, 2) }}"
+      register: mem_output
+      
+    - name: Set Total and Free Memory facts (MB)
       set_fact:
-        free_physical_memory_mb: "{{ (free_mem_raw.stdout | int / 1024) | float | round(2) }}"
+        total_physical_memory_mb: "{{ mem_output.stdout_lines | select('search', '^total=') | first | regex_replace('^total=', '') | float }}"
+        free_physical_memory_mb: "{{ mem_output.stdout_lines | select('search', '^free=') | first | regex_replace('^free=', '') | float }}"
 
-    - name: Set Total Physical Memory variable (in MB)
+    - name: Calculate Used Memory and Usage Percentage (safe)
       set_fact:
-        total_physical_memory_mb: "{{ (total_mem_raw.stdout | int / 1024) | float | round(2) }}"
-
-    - name: Calculate Used Memory and Usage Percentage
-      set_fact:
-        used_physical_memory_mb: "{{ (total_physical_memory_mb - free_physical_memory_mb) | float | round(2) }}"
-        memory_usage_percentage: "{{ ((total_physical_memory_mb - free_physical_memory_mb) / total_physical_memory_mb * 100) | float | round(2) }}"
+        used_physical_memory_mb: "{{ (total_physical_memory_mb - free_physical_memory_mb) | round(2) }}"
+        memory_usage_percentage: >-
+          {% if total_physical_memory_mb > 0 %}
+          {{ ((total_physical_memory_mb - free_physical_memory_mb) / total_physical_memory_mb * 100) | round(2) }}
+          {% else %}
+          0.0
+          {% endif %}
 
     - name: Display CPU load percentage
       debug:
         msg: "CPU Load Percentage: {{ cpu_load_percentage }}%"
 
-    - name: Display free physical memory
+    - name: Show memory usage
       debug:
-        msg: "Free Physical Memory: {{ free_physical_memory_mb }} MB"
-
-    - name: Display total physical memory
-      debug:
-        msg: "Total Physical Memory: {{ total_physical_memory_mb }} MB"
-
-    - name: Display used physical memory
-      debug:
-        msg: "Used Physical Memory: {{ used_physical_memory_mb }} MB"
-
-    - name: Display memory usage percentage
-      debug:
-        msg: "Memory Usage Percentage: {{ memory_usage_percentage }}%"
+        msg: >
+          Total: {{ total_physical_memory_mb }} MB |
+          Free: {{ free_physical_memory_mb }} MB |
+          Used: {{ used_physical_memory_mb }} MB |
+          Usage: {{ memory_usage_percentage }}%
