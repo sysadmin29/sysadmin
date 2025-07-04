@@ -20,7 +20,6 @@
         echo "MAC_Address: \"$mac_addr\""
       register: result
 
-    - name: Show as flat YAML output
+    - name: Show vertical output
       debug:
-        msg: |
-          {{ result.stdout_lines | join("\n") }}
+        msg: "{{ result.stdout }}"
