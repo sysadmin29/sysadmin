@@ -1,9 +1,9 @@
 ---
-- name: Check CPU and memory and print YAML-style output
+- name: Check CPU, memory, and MAC address
   hosts: 10.50.20.58
   gather_facts: no
   tasks:
-    - name: Get CPU and memory info
+    - name: Get CPU, memory, and MAC address info
       shell: |
         cpu_cores=$(nproc)
         cpu_model=$(lscpu | grep "Model name" | awk -F: '{print $2}' | sed 's/^ //')
@@ -12,15 +12,12 @@
         free_mem=$(free -m | awk '/^Mem:/ { print $4 }')
         mac_addr=$(ip link show | awk '/ether/ {print $2; exit}')
 
-        echo "resources:"
-        echo "  cpu:"
-        echo "    cores: $cpu_cores"
-        echo "    model: \"$cpu_model\""
-        echo "  memory:"
-        echo "    total_mb: $total_mem"
-        echo "    used_mb: $used_mem"
-        echo "    free_mb: $free_mem"
-        echo "    mac_address: \"$mac_addr\""
+        echo "CPU Cores     : $cpu_cores"
+        echo "CPU Model     : $cpu_model"
+        echo "Total Memory  : ${total_mem} MB"
+        echo "Used Memory   : ${used_mem} MB"
+        echo "Free Memory   : ${free_mem} MB"
+        echo "MAC Address   : $mac_addr"
       register: result
 
     - name: Show YAML output
