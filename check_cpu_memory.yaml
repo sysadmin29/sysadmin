@@ -19,6 +19,7 @@
         echo "    total_mb: $total_mem"
         echo "    used_mb: $used_mem"
         echo "    free_mb: $free_mem"
+        echo "    mac_address: \"$mac_addr\""
       register: result
 
     - name: Show YAML output
