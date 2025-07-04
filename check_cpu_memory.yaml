@@ -28,6 +28,9 @@
         echo "Disk_Usage: $disk_usage"
       register: result
 
-    - name: Show vertical output
+    - name: Show clean vertical output like YAML
       debug:
-        msg: "{{ result.stdout }}"
+        msg: |
+          {% for line in result.stdout_lines %}
+          {{ line }}
+          {% endfor %}
