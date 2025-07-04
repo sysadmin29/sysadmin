@@ -11,6 +11,10 @@
         used_mem=$(free -m | awk '/^Mem:/ { print $3 }')
         free_mem=$(free -m | awk '/^Mem:/ { print $4 }')
         mac_addr=$(ip link show | awk '/ether/ {print $2; exit}')
+        disk_total=$(df -h / | awk 'NR==2 {print $2}')
+        disk_used=$(df -h / | awk 'NR==2 {print $3}')
+        disk_avail=$(df -h / | awk 'NR==2 {print $4}')
+        disk_usage=$(df -h / | awk 'NR==2 {print $5}')
 
         echo "CPU Cores     : $cpu_cores"
         echo "CPU Model     : $cpu_model"
@@ -18,6 +22,10 @@
         echo "Used Memory   : ${used_mem} MB"
         echo "Free Memory   : ${free_mem} MB"
         echo "MAC Address   : $mac_addr"
+        echo "Disk_Total: $disk_total"
+        echo "Disk_Used: $disk_used"
+        echo "Disk_Available: $disk_avail"
+        echo "Disk_Usage: $disk_usage"
       register: result
 
     - name: Show vertical output
