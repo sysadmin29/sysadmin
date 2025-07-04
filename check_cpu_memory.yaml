@@ -10,6 +10,7 @@
         total_mem=$(free -m | awk '/^Mem:/ { print $2 }')
         used_mem=$(free -m | awk '/^Mem:/ { print $3 }')
         free_mem=$(free -m | awk '/^Mem:/ { print $4 }')
+        mac_addr=$(ip link show | awk '/ether/ {print $2; exit}')
 
         echo "resources:"
         echo "  cpu:"
