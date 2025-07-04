@@ -1,6 +1,6 @@
 ---
 - name: Check CPU and memory and print YAML-style output
-  hosts: localhost
+  hosts: 10.50.20.58
   gather_facts: no
   tasks:
     - name: Get CPU and memory info
