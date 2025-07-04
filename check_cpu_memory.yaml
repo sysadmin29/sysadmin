@@ -1,16 +1,26 @@
-#!/bin/bash
+---
+- name: Check CPU and memory and print YAML-style output
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Get CPU and memory info
+      shell: |
+        cpu_cores=$(nproc)
+        cpu_model=$(lscpu | grep "Model name" | awk -F: '{print $2}' | sed 's/^ //')
+        total_mem=$(free -m | awk '/^Mem:/ { print $2 }')
+        used_mem=$(free -m | awk '/^Mem:/ { print $3 }')
+        free_mem=$(free -m | awk '/^Mem:/ { print $4 }')
 
-cpu_cores=$(nproc)
-cpu_model=$(lscpu | grep "Model name" | awk -F: '{print $2}' | sed 's/^ //')
-total_mem=$(free -m | awk '/^Mem:/ { print $2 }')
-used_mem=$(free -m | awk '/^Mem:/ { print $3 }')
-free_mem=$(free -m | awk '/^Mem:/ { print $4 }')
+        echo "resources:"
+        echo "  cpu:"
+        echo "    cores: $cpu_cores"
+        echo "    model: \"$cpu_model\""
+        echo "  memory:"
+        echo "    total_mb: $total_mem"
+        echo "    used_mb: $used_mem"
+        echo "    free_mb: $free_mem"
+      register: result
 
-echo "resources:"
-echo "  cpu:"
-echo "    cores: $cpu_cores"
-echo "    model: \"$cpu_model\""
-echo "  memory:"
-echo "    total_mb: $total_mem"
-echo "    used_mb: $used_mem"
-echo "    free_mb: $free_mem"
+    - name: Show YAML output
+      debug:
+        msg: "{{ result.stdout }}"
