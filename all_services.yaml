@@ -1,0 +1,14 @@
+---
+- name: Check Windows services
+  hosts: windows
+  gather_facts: no
+
+  tasks:
+    - name: List all services
+      win_shell: |
+        Get-Service | Select-Object DisplayName, Status, StartType | ConvertTo-Json
+      register: services_output
+
+    - name: Display services output
+      debug:
+        var: services_output.stdout
