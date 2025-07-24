@@ -4,7 +4,7 @@
   gather_facts: no
 
   tasks:
-    - name: List all services of vms
+    - name: List all services
       win_shell: |
         Get-Service | Select-Object DisplayName, Status, StartType | ConvertTo-Json
       register: services_output
