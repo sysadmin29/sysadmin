@@ -4,7 +4,7 @@
   gather_facts: no
 
   tasks:
-    - name: List all services
+    - name: List all services of server
       win_shell: |
         Get-Service | Select-Object DisplayName, Status, StartType | ConvertTo-Json
       register: services_output
