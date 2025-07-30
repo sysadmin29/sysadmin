@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: react-frontend
+  namespace: kt-website
   labels:
     app: react-frontend
 spec:
