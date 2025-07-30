@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: react-ui
+  template:
+    metadata:
+      labels:
+        app: react-ui
+    spec:
+      containers:
+        - name: react-ui
+          image: myregistry/react-app:latest
+          ports:
+            - containerPort: 80
