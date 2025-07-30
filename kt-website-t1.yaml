@@ -1,19 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kt-website
+  name: react-frontend
+  labels:
+    app: react-frontend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: react-ui
+      app: react-frontend
   template:
     metadata:
       labels:
-        app: react-ui
+        app: react-frontend
     spec:
       containers:
-        - name: react-ui
-          image: myregistry/react-app:latest
-          ports:
-            - containerPort: 80
+      - name: react-frontend
+        image: your-dockerhub-user/react-app:latest
+        ports:
+        - containerPort: 80
