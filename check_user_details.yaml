@@ -3,7 +3,7 @@
   hosts: windows
   gather_facts: no
   vars:
-    ad_username: "test1"
+    ad_username: "del"
   tasks:
     - name: Get AD user details
       win_shell: |
