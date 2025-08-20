@@ -1,0 +1,14 @@
+- name: Get full AD user details
+  hosts: windows
+  gather_facts: no
+  vars:
+    ad_username: "del"
+  tasks:
+    - name: Get ALL AD user properties
+      win_shell: |
+        Get-ADUser -Identity "{{ ad_username }}" -Properties * | Format-List *
+      register: ad_user_details
+
+    - name: Show complete details
+      debug:
+        var: ad_user_details.stdout_lines
