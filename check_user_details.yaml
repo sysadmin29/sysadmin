@@ -1,0 +1,26 @@
+---
+- name: Get AD user details and security groups
+  hosts: windows
+  gather_facts: no
+  vars:
+    ad_username: "test1"
+  tasks:
+    - name: Get AD user details
+      win_shell: |
+        Get-ADUser -Identity "{{ ad_username }}" -Properties * | 
+        Select-Object SamAccountName, Name, Enabled, DistinguishedName, MemberOf
+      register: ad_user_details
+
+    - name: Show raw details
+      debug:
+        var: ad_user_details.stdout_lines
+
+    - name: Expand security groups
+      win_shell: |
+        (Get-ADUser -Identity "{{ ad_username }}" -Properties MemberOf).MemberOf |
+        ForEach-Object { (Get-ADGroup $_).Name }
+      register: ad_user_groups
+
+    - name: Show security groups
+      debug:
+        var: ad_user_groups.stdout_lines
