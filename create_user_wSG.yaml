@@ -5,13 +5,13 @@
   tasks:
     - name: Create user in AD
       microsoft.ad.user:
-        identity: test2
-        name: test2
-        sam_account_name: test2
-        firstname: test2
-        surname: test2
-        display_name: test2
-        upn: test2@aura.local
+        identity: test3
+        name: test3
+        sam_account_name: test3
+        firstname: test3
+        surname: test3
+        display_name: test3
+        upn: test3@aura.local
         password: Welcome1
         enabled: yes
         state: present
@@ -25,7 +25,7 @@
 
     - name: Set Username
       set_fact:
-        sam_account_name: "test2"
+        sam_account_name: "test3"
 
     - name: Add user to group Local Administrator
       microsoft.ad.group:
@@ -44,3 +44,4 @@
           add:
             - "{{ sam_account_name }}"
         state: present
+
