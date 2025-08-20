@@ -1,18 +1,22 @@
-- name: Get AD user details vertically
+- name: Get AD user details by name
   hosts: windows
   gather_facts: no
   vars:
-    ad_username: "del"
+    ad_name: "Christoper Del Rosario"
   tasks:
-    - name: Get user details
+    - name: Get user by name
       win_shell: |
-        $user = Get-ADUser -Identity "{{ ad_username }}" -Properties MemberOf
-        $ou = ($user.DistinguishedName -split ',')[1..($user.DistinguishedName -split ',').Length] -join ','
-        $groups = $user.MemberOf | ForEach-Object { (Get-ADGroup $_).Name } | Sort-Object
-        Write-Output "Name      : $($user.Name)"
-        Write-Output "Username  : $($user.SamAccountName)"
-        Write-Output "OU        : $ou"
-        Write-Output "Groups    : $($groups -join ', ')"
+        $user = Get-ADUser -Filter "Name -like '*{{ ad_name }}*'" -Properties MemberOf
+        if ($user) {
+            $ou = ($user.DistinguishedName -split ',')[1..($user.DistinguishedName -split ',').Length] -join ','
+            $groups = $user.MemberOf | ForEach-Object { (Get-ADGroup $_).Name } | Sort-Object
+            Write-Output "Name      : $($user.Name)"
+            Write-Output "Username  : $($user.SamAccountName)"
+            Write-Output "OU        : $ou"
+            Write-Output "Groups    : $($groups -join ', ')"
+        } else {
+            Write-Output "User not found"
+        }
       register: ad_user_info
 
     - name: Show user details
