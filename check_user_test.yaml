@@ -1,20 +1,15 @@
-- name: Get essential AD user details
+- name: Get AD user details in horizontal format
   hosts: windows
   gather_facts: no
   vars:
-    ad_username: "del"   # change this to your AD username
+    ad_username: "del"
   tasks:
-    - name: Get user basic info
+    - name: Get user info
       win_shell: |
         $user = Get-ADUser -Identity "{{ ad_username }}" -Properties MemberOf
         $ou = ($user.DistinguishedName -split ',')[1..($user.DistinguishedName -split ',').Length] -join ','
-        $groups = $user.MemberOf | ForEach-Object { (Get-ADGroup $_).Name }
-        [PSCustomObject]@{
-            Name = $user.Name
-            Username = $user.SamAccountName
-            OU = $ou
-            Groups = $groups -join ', '
-        }
+        $groups = $user.MemberOf | ForEach-Object { (Get-ADGroup $_).Name } | Sort-Object
+        "$($user.Name),$($user.SamAccountName),$ou,$($groups -join '|')"
       register: ad_user_info
 
     - name: Show user details
