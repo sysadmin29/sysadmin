@@ -1,26 +1,24 @@
----
-- name: Get AD user details and security groups
+- name: Get AD user details by name
   hosts: windows
   gather_facts: no
   vars:
-    ad_username: "del"
+    ad_name: "Christopher Del Rosario"
   tasks:
-    - name: Get AD user details
+    - name: Get user by name
       win_shell: |
-        Get-ADUser -Identity "{{ ad_username }}" -Properties * | 
-        Select-Object SamAccountName, Name, Enabled, DistinguishedName, MemberOf
-      register: ad_user_details
+        $user = Get-ADUser -Filter "Name -like '*{{ ad_name }}*'" -Properties MemberOf
+        if ($user) {
+            $ou = ($user.DistinguishedName -split ',')[1..($user.DistinguishedName -split ',').Length] -join ','
+            $groups = $user.MemberOf | ForEach-Object { (Get-ADGroup $_).Name } | Sort-Object
+            Write-Output "Name      : $($user.Name)"
+            Write-Output "Username  : $($user.SamAccountName)"
+            Write-Output "OU        : $ou"
+            Write-Output "Groups    : $($groups -join ', ')"
+        } else {
+            Write-Output "User not found"
+        }
+      register: ad_user_info
 
-    - name: Show raw details
+    - name: Show user details
       debug:
-        var: ad_user_details.stdout_lines
-
-    - name: Expand security groups
-      win_shell: |
-        (Get-ADUser -Identity "{{ ad_username }}" -Properties MemberOf).MemberOf |
-        ForEach-Object { (Get-ADGroup $_).Name }
-      register: ad_user_groups
-
-    - name: Show security groups
-      debug:
-        var: ad_user_groups.stdout_lines
+        var: ad_user_info.stdout_lines
