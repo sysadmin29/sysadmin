@@ -2,7 +2,7 @@
   hosts: windows
   gather_facts: no
   vars:
-    ad_name: "marie floria"
+    ad_name: "marie"
   tasks:
     - name: Get user by name
       win_shell: |
