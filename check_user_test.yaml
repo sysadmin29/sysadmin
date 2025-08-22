@@ -11,23 +11,23 @@
             $ou = ($user.DistinguishedName -split ',')[1..($user.DistinguishedName -split ',').Length] -join ','
             $groups = $user.MemberOf | ForEach-Object { (Get-ADGroup $_).Name } | Sort-Object
 
-            $details = @()
-            $details += "Name           : $($user.Name)"
-            $details += "Username       : $($user.SamAccountName)"
-            $details += "OU             : $ou"
-            $details += "Groups         : $($groups -join ', ')"
-            $details += "Description    : $($user.Description)"
-            $details += "Office         : $($user.Office)"
-            $details += "Telephone      : $($user.TelephoneNumber)"
-            $details += "Email          : $($user.Mail)"
+            $obj = [ordered]@{
+                Name        = $user.Name
+                Username    = $user.SamAccountName
+                OU          = $ou
+                Groups      = ($groups -join ', ')
+                Description = $user.Description
+                Office      = $user.Office
+                Telephone   = $user.TelephoneNumber
+                Email       = $user.Mail
+            }
 
-            # Force into single line with custom delimiter
-            Write-Output ($details -join ' | ')
+            $obj | ConvertTo-Json -Compress
         } else {
             Write-Output "User not found"
         }
       register: ad_user_info
 
-    - name: Show user details
+    - name: Show user details (pretty vertical)
       debug:
-        msg: "{{ ad_user_info.stdout }}"
+        msg: "{{ ad_user_info.stdout | from_json | to_nice_json }}"
