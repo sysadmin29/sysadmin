@@ -2,7 +2,7 @@
   hosts: windows
   gather_facts: no
   vars:
-    ad_name: "Chris Del Rosario"
+    ad_name: "nadz"
   tasks:
     - name: Get user by name
       win_shell: |
