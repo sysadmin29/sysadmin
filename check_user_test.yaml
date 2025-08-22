@@ -10,14 +10,19 @@
         if ($user) {
             $ou = ($user.DistinguishedName -split ',')[1..($user.DistinguishedName -split ',').Length] -join ','
             $groups = $user.MemberOf | ForEach-Object { (Get-ADGroup $_).Name } | Sort-Object
-            Write-Output "Name           : $($user.Name)"
-            Write-Output "Username       : $($user.SamAccountName)"
-            Write-Output "OU             : $ou"
-            Write-Output "Groups         : $($groups -join ', ')"
-            Write-Output "Description    : $($user.Description)"
-            Write-Output "Office         : $($user.Office)"
-            Write-Output "Telephone      : $($user.TelephoneNumber)"
-            Write-Output "Email          : $($user.Mail)"
+
+            $details = @()
+            $details += "Name           : $($user.Name)"
+            $details += "Username       : $($user.SamAccountName)"
+            $details += "OU             : $ou"
+            $details += "Groups         : $($groups -join ', ')"
+            $details += "Description    : $($user.Description)"
+            $details += "Office         : $($user.Office)"
+            $details += "Telephone      : $($user.TelephoneNumber)"
+            $details += "Email          : $($user.Mail)"
+
+            # Force into single line with custom delimiter
+            Write-Output ($details -join ' | ')
         } else {
             Write-Output "User not found"
         }
@@ -25,4 +30,4 @@
 
     - name: Show user details
       debug:
-        var: ad_user_info.stdout_lines
+        msg: "{{ ad_user_info.stdout }}"
