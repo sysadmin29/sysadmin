@@ -1,0 +1,33 @@
+- name: Get AD user details with additional info
+  hosts: windows
+  gather_facts: no
+  vars:
+    ad_name: "test2"
+  tasks:
+    - name: Get user by name
+      win_shell: |
+        $user = Get-ADUser -Filter "Name -like '*{{ ad_name }}*'" -Properties MemberOf, Description, Office, TelephoneNumber, Mail
+        if ($user) {
+            $ou = ($user.DistinguishedName -split ',')[1..($user.DistinguishedName -split ',').Length] -join ','
+            $groups = $user.MemberOf | ForEach-Object { (Get-ADGroup $_).Name } | Sort-Object
+
+            $obj = [ordered]@{
+                Name        = $user.Name
+                Username    = $user.SamAccountName
+                OU          = $ou
+                Groups      = ($groups -join ', ')
+                Description = $user.Description
+                Office      = $user.Office
+                Telephone   = $user.TelephoneNumber
+                Email       = $user.Mail
+            }
+
+            $obj | ConvertTo-Json -Compress
+        } else {
+            Write-Output "User not found"
+        }
+      register: ad_user_info
+
+    - name: Show user details (pretty vertical)
+      debug:
+        msg: "{{ ad_user_info.stdout | from_json | to_nice_json }}"

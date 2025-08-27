@@ -1,0 +1,30 @@
+- name: Get AD user details with additional info
+  hosts: windows
+  gather_facts: no
+  vars:
+    ad_name: "nadz"
+  tasks:
+    - name: Get user by name
+      win_shell: |
+        $user = Get-ADUser -Filter "Name -like '*{{ ad_name }}*'" -Properties MemberOf, Description, Office, TelephoneNumber, Mail
+        if ($user) {
+            $ou = ($user.DistinguishedName -split ',')[1..($user.DistinguishedName -split ',').Length] -join ','
+            $groups = $user.MemberOf | ForEach-Object { (Get-ADGroup $_).Name } | Sort-Object
+
+            $output  = "Name           : $($user.Name)`n"
+            $output += "Username       : $($user.SamAccountName)`n"
+            $output += "OU             : $ou`n"
+            $output += "Groups         : $($groups -join ', ')`n"
+            $output += "Description    : $($user.Description)`n"
+            $output += "Office         : $($user.Office)`n"
+            $output += "Telephone      : $($user.TelephoneNumber)`n"
+            $output += "Email          : $($user.Mail)"
+            Write-Output $output
+        } else {
+            Write-Output "User not found"
+        }
+      register: ad_user_info
+
+    - name: Show user details
+      debug:
+        msg: "{{ ad_user_info.stdout }}"
