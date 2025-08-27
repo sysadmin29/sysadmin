@@ -1,14 +1,10 @@
 ---
 - hosts: windows
-  gather_facts: no # Disable fact gathering to speed up execution
+  gather_facts: no
   tasks:
     - name: Get CPU load percentage
       win_shell: (Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average
       register: cpu_load_raw
-
-    - name: Set CPU Load Percentage variable
-      set_fact:
-        cpu_load_percentage: "{{ cpu_load_raw.stdout | float | round(2) }}"
 
     - name: Get Total and Free Physical Memory (MB)
       win_shell: |
@@ -37,47 +33,33 @@
         Get-NetAdapter | ForEach-Object {
         "$($_.Name)=$($_.MacAddress)" }
       register: mac_info
-      
-    - name: Set Total and Free Memory facts (MB)
-      set_fact:
+
+    # ---- Extract facts ----
+    - set_fact:
+        cpu_load_percentage: "{{ cpu_load_raw.stdout | float | round(2) }}"
         total_physical_memory_mb: "{{ mem_output.stdout_lines | select('search', '^total=') | first | regex_replace('^total=', '') | float }}"
         free_physical_memory_mb: "{{ mem_output.stdout_lines | select('search', '^free=') | first | regex_replace('^free=', '') | float }}"
-
-    - name: Calculate Used Memory and Usage Percentage (safe)
-      set_fact:
-        used_physical_memory_mb: "{{ (total_physical_memory_mb | float - free_physical_memory_mb | float) | round(2) }}"
-        memory_usage_percentage: >-
-          {% if total_physical_memory_mb | float > 0 %}
-          {{ ((total_physical_memory_mb | float - free_physical_memory_mb | float) / total_physical_memory_mb | float * 100) | round(2) }}
-          {% else %}
-          0.0
-          {% endif %}
-
-    - name: Extract disk usage values
-      set_fact:
         disk_total_gb: "{{ disk_output.stdout_lines | select('search', '^total=') | first | regex_replace('^total=', '') | float }}"
         disk_free_gb: "{{ disk_output.stdout_lines | select('search', '^free=') | first | regex_replace('^free=', '') | float }}"
         disk_used_gb: "{{ disk_output.stdout_lines | select('search', '^used=') | first | regex_replace('^used=', '') | float }}"
         disk_used_percent: "{{ disk_output.stdout_lines | select('search', '^used_percent=') | first | regex_replace('^used_percent=', '') | float }}"
 
-    - name: Display CPU load percentage
-      debug:
-        msg: "CPU Load Percentage: {{ cpu_load_percentage }}%"
+    - set_fact:
+        used_physical_memory_mb: "{{ (total_physical_memory_mb - free_physical_memory_mb) | round(2) }}"
+        memory_usage_percentage: >-
+          {% if total_physical_memory_mb > 0 %}
+          {{ ((total_physical_memory_mb - free_physical_memory_mb) / total_physical_memory_mb * 100) | round(2) }}
+          {% else %} 0.0 {% endif %}
 
-    - name: Show memory usage
+    # ---- Single clean output ----
+    - name: Display system information summary
       debug:
-        msg: >
-          Total: {{ total_physical_memory_mb }} MB |
-          Free: {{ free_physical_memory_mb }} MB |
-          Used: {{ used_physical_memory_mb }} MB |
-          Usage: {{ memory_usage_percentage }}%
-
-    - name: Show disk usage
-      debug:
-        msg: >
-          Drive C: Used {{ disk_used_gb }} GB / {{ disk_total_gb }} GB
-          ({{ disk_used_percent }}% used)
-
-    - name: Display MAC address
-      debug:
-        var: mac_info.stdout_lines
+        msg: |
+          ===== System Info =====
+          CPU Load: {{ cpu_load_percentage }} %
+          Memory: Total {{ total_physical_memory_mb }} MB | Used {{ used_physical_memory_mb }} MB | Free {{ free_physical_memory_mb }} MB | Usage {{ memory_usage_percentage }} %
+          Disk C:: Used {{ disk_used_gb }} GB / {{ disk_total_gb }} GB ({{ disk_used_percent }} % used)
+          MAC Addresses:
+          {% for line in mac_info.stdout_lines %}
+            - {{ line }}
+          {% endfor %}
