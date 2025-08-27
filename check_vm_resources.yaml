@@ -34,7 +34,6 @@
         "$($_.Name)=$($_.MacAddress)" }
       register: mac_info
 
-    # ---- Extract facts ----
     - set_fact:
         cpu_load_percentage: "{{ cpu_load_raw.stdout | float | round(2) }}"
         total_physical_memory_mb: "{{ mem_output.stdout_lines | select('search', '^total=') | first | regex_replace('^total=', '') | float }}"
@@ -51,7 +50,6 @@
           {{ ((total_physical_memory_mb - free_physical_memory_mb) / total_physical_memory_mb * 100) | round(2) }}
           {% else %} 0.0 {% endif %}
 
-    # ---- Single clean output ----
     - name: Display system information summary
       debug:
         msg: |
