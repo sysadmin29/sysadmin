@@ -44,11 +44,13 @@
         disk_used_percent: "{{ disk_output.stdout_lines | select('search', '^used_percent=') | first | regex_replace('^used_percent=', '') | float }}"
 
     - set_fact:
-        used_physical_memory_mb: "{{ (total_physical_memory_mb - free_physical_memory_mb) | round(2) }}"
+        used_physical_memory_mb: "{{ (total_physical_memory_mb | float - free_physical_memory_mb | float) | round(2) }}"
         memory_usage_percentage: >-
-          {% if total_physical_memory_mb > 0 %}
-          {{ ((total_physical_memory_mb - free_physical_memory_mb) / total_physical_memory_mb * 100) | round(2) }}
-          {% else %} 0.0 {% endif %}
+          {% if total_physical_memory_mb | float > 0 %}
+          {{ ((total_physical_memory_mb | float - free_physical_memory_mb | float) / total_physical_memory_mb | float * 100) | round(2) }}
+          {% else %}
+          0.0
+          {% endif %}
 
     - name: Display system information summary
       debug:
