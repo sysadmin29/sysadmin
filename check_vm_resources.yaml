@@ -28,6 +28,19 @@
         Write-Output "used_percent=$percentUsed"
       register: disk_output
 
+    - name: Get disk usage for D
+      win_shell: |
+        $disk = Get-CimInstance Win32_LogicalDisk -Filter "DeviceID='D:'"
+        $total = [math]::Round($disk.Size / 1GB, 2)
+        $free = [math]::Round($disk.FreeSpace / 1GB, 2)
+        $used = $total - $free
+        $percentUsed = [math]::Round(($used / $total) * 100, 2)
+        Write-Output "total=$total"
+        Write-Output "free=$free"
+        Write-Output "used=$used"
+        Write-Output "used_percent=$percentUsed"
+      register: disk_d_output
+
     - name: Get MAC address using PowerShell
       win_shell: |
         Get-NetAdapter | ForEach-Object {
@@ -42,6 +55,10 @@
         disk_free_gb: "{{ disk_output.stdout_lines | select('search', '^free=') | first | regex_replace('^free=', '') | float }}"
         disk_used_gb: "{{ disk_output.stdout_lines | select('search', '^used=') | first | regex_replace('^used=', '') | float }}"
         disk_used_percent: "{{ disk_output.stdout_lines | select('search', '^used_percent=') | first | regex_replace('^used_percent=', '') | float }}"
+        disk_d_total_gb: "{{ disk_d_output.stdout_lines | select('search', '^total=') | first | regex_replace('^total=', '') | float }}"
+        disk_d_free_gb: "{{ disk_d_output.stdout_lines | select('search', '^free=') | first | regex_replace('^free=', '') | float }}"
+        disk_d_used_gb: "{{ disk_d_output.stdout_lines | select('search', '^used=') | first | regex_replace('^used=', '') | float }}"
+        disk_d_used_percent: "{{ disk_d_output.stdout_lines | select('search', '^used_percent=') | first | regex_replace('^used_percent=', '') | float }}"
 
     - set_fact:
         used_physical_memory_mb: "{{ (total_physical_memory_mb | float - free_physical_memory_mb | float) | round(2) }}"
