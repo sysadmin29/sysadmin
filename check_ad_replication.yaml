@@ -1,6 +1,6 @@
 ---
 - name: Check Active Directory Replication
-  hosts: domain_controllers
+  hosts: windows
   gather_facts: no
   tasks:
     - name: Run repadmin to check replication status
