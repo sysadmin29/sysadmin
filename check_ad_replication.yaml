@@ -1,0 +1,20 @@
+---
+- name: Check Active Directory Replication
+  hosts: domain_controllers
+  gather_facts: no
+  tasks:
+    - name: Run repadmin to check replication status
+      win_command: repadmin /replsummary
+      register: replsummary
+
+    - name: Show replication summary
+      debug:
+        var: replsummary.stdout_lines
+
+    - name: Run repadmin to check replication partners
+      win_command: repadmin /showrepl
+      register: showrepl
+
+    - name: Show replication details
+      debug:
+        var: showrepl.stdout_lines
