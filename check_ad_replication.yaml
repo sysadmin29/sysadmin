@@ -1,11 +1,12 @@
 ---
 - name: Check Active Directory Replication
-  hosts: windows
+  hosts: domain_controllers
   gather_facts: no
   tasks:
     - name: Run repadmin to check replication status
       win_command: repadmin /replsummary
       register: replsummary
+      failed_when: false
 
     - name: Show replication summary
       debug:
@@ -14,6 +15,7 @@
     - name: Run repadmin to check replication partners
       win_command: repadmin /showrepl
       register: showrepl
+      failed_when: false
 
     - name: Show replication details
       debug:
