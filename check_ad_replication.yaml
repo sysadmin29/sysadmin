@@ -8,15 +8,15 @@
       register: replsummary
       failed_when: false
 
-    - name: Show replication summary
+    - name: Show replication summary (clean)
       debug:
-        var: replsummary.stdout_lines
+        msg: "{{ replsummary.stdout_lines | map('trim') | reject('equalto', '') | join('\n') }}"
 
     - name: Run repadmin to check replication partners
       win_command: repadmin /showrepl
       register: showrepl
       failed_when: false
 
-    - name: Show replication details
+    - name: Show replication details (clean)
       debug:
-        var: showrepl.stdout_lines
+        msg: "{{ showrepl.stdout_lines | map('trim') | reject('equalto', '') | join('\n') }}"
