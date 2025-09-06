@@ -10,18 +10,24 @@
 
     - name: Test connectivity to each DC before replication check
       win_shell: |
+        $dc_list = {{ dc_list | to_json }} | ConvertFrom-Json
         $results = @()
         $ports = @(135, 389, 3268)
-        foreach ($dc in {{ dc_list | to_json }}){
-            foreach ($port in $ports){
+        foreach ($dc in $dc_list) {
+            foreach ($port in $ports) {
                 $test = Test-NetConnection -ComputerName $dc -Port $port
-                if (-not $test.TcpTestSucceeded){
+                if (-not $test.TcpTestSucceeded) {
                     $results += "$dc port $port unreachable"
                 }
             }
         }
-        if ($results.Count -eq 0){ "All DCs reachable" } else { $results -join "`n" }
+        if ($results.Count -eq 0) {
+            "All DCs reachable"
+        } else {
+            $results -join "`n"
+        }
       register: dc_connectivity
+      failed_when: false
 
     - name: Show DC connectivity result
       debug:
