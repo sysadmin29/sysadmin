@@ -14,7 +14,8 @@
       set_fact:
         repl_lines: >-
           {{ repl_summary.stdout_lines
-             | select('search', '^AURA-DC')
+             | select('search', 'AURA-DC') 
+             | map('regex_replace', '^\\s*\\d*\\s*-\\s*', '')  # remove leading numbers like '110 - '
              | list }}
 
     - name: Show cleaned replication summary (2 sources + 2 destinations)
