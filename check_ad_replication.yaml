@@ -9,13 +9,14 @@
       register: replsummary
       failed_when: false
 
-    - name: Process replication summary
+    - name: Process replication summary into list
       set_fact:
-        cleaned_summary: >-
+        cleaned_summary_list: >-
           {%- set output = [] -%}
           {%- for line in replsummary.stdout_lines -%}
             {%- set l = line.strip() -%}
             {%- if l != '' and (
+                  l.startswith('Replication Summary Start Time') or
                   l.startswith('Beginning data collection') or
                   l.startswith('.....') or
                   l.startswith('Source DSA') or
@@ -25,21 +26,24 @@
               {{- output.append(l) -}}
             {%- endif -%}
           {%- endfor -%}
-          {{- output | join('\n') -}}
+          {{ output }}
 
     - name: Show cleaned replication summary (vertical)
       debug:
         msg: |
-          {{ cleaned_summary }}
+          {% for line in cleaned_summary_list %}
+          {{ line }}
+          {% endfor %}
+
 
     - name: Run repadmin to check replication partners
       win_command: repadmin /showrepl
       register: showrepl
       failed_when: false
 
-    - name: Process replication details
+    - name: Process replication details into list
       set_fact:
-        cleaned_details: >-
+        cleaned_details_list: >-
           {%- set output = [] -%}
           {%- for line in showrepl.stdout_lines -%}
             {%- set l = line.strip() -%}
@@ -56,9 +60,11 @@
               {%- endif -%}
             {%- endif -%}
           {%- endfor -%}
-          {{- output | join('\n') -}}
+          {{ output }}
 
     - name: Show cleaned replication details (vertical)
       debug:
         msg: |
-          {{ cleaned_details }}
+          {% for line in cleaned_details_list %}
+          {{ line }}
+          {% endfor %}
