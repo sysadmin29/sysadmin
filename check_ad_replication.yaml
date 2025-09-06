@@ -2,7 +2,30 @@
 - name: Check Active Directory Replication
   hosts: windows
   gather_facts: no
+  vars:
+    dc_list:
+      - 10.50.20.65   # DC 1
+      - 10.50.20.85   # DC 2
   tasks:
+
+    - name: Test connectivity to each DC before replication check
+      win_shell: |
+        $results = @()
+        $ports = @(135, 389, 3268)
+        foreach ($dc in {{ dc_list | to_json }}){
+            foreach ($port in $ports){
+                $test = Test-NetConnection -ComputerName $dc -Port $port
+                if (-not $test.TcpTestSucceeded){
+                    $results += "$dc port $port unreachable"
+                }
+            }
+        }
+        if ($results.Count -eq 0){ "All DCs reachable" } else { $results -join "`n" }
+      register: dc_connectivity
+
+    - name: Show DC connectivity result
+      debug:
+        msg: "{{ dc_connectivity.stdout }}"
 
     - name: Run repadmin to check replication status
       win_command: repadmin /replsummary
