@@ -2,36 +2,28 @@
 - name: Check Active Directory Replication
   hosts: windows
   gather_facts: no
-  vars:
-    dc_list:
-      - 10.50.20.65
-      - 10.50.20.85
 
   tasks:
 
     - name: Run repadmin to check replication status
-      win_shell: |
-        repadmin /replsummary
+      win_shell: repadmin /replsummary
       register: repl_summary
       ignore_errors: yes
 
-    - name: Process replication summary into list
+    - name: Parse replication summary
       set_fact:
-        summary_lines: "{{ repl_summary.stdout_lines | select('search', 'DSA') | list }}"
-    
+        # Only keep lines containing DC names and summary info
+        repl_lines: "{{ repl_summary.stdout_lines | select('search','AURA-DC') | list }}"
+
     - name: Show cleaned replication summary (2 sources + 2 destinations)
       debug:
         msg: |
           Source DSA          largest delta    fails/total %%   error
-          Replication Summary Start Time: {{ repl_summary.start }}
-          Beginning data collection for replication summary, this may take awhile:
-          {% for line in summary_lines[0:2] %}
+          {% for line in repl_lines[0:2] %}
           {{ line }}
           {% endfor %}
 
           Destination DSA     largest delta    fails/total %%   error
-          Replication Summary Start Time: {{ repl_summary.start }}
-          Beginning data collection for replication summary, this may take awhile:
-          {% for line in summary_lines[2:4] %}
+          {% for line in repl_lines[2:4] %}
           {{ line }}
           {% endfor %}
