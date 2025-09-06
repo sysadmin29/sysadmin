@@ -3,6 +3,7 @@
   hosts: windows
   gather_facts: no
   tasks:
+
     - name: Run repadmin to check replication status
       win_command: repadmin /replsummary
       register: replsummary
@@ -10,7 +11,19 @@
 
     - name: Show replication summary (clean)
       debug:
-        msg: "{{ replsummary.stdout_lines | map('trim') | reject('equalto', '') | join('\n') }}"
+        msg: |
+          {% for line in replsummary.stdout_lines %}
+          {% set l = line.strip() %}
+          {% if l != '' and (
+                l.startswith('Beginning data collection') or
+                l.startswith('.....') or
+                l.startswith('Source DSA') or
+                l.startswith('Destination DSA') or
+                (l[0:1].isalpha() and not l.startswith('Experienced') and not l.startswith('Repadmin'))
+          ) %}
+          {{ l }}
+          {% endif %}
+          {% endfor %}
 
     - name: Run repadmin to check replication partners
       win_command: repadmin /showrepl
@@ -19,4 +32,17 @@
 
     - name: Show replication details (clean)
       debug:
-        msg: "{{ showrepl.stdout_lines | map('trim') | reject('equalto', '') | join('\n') }}"
+        msg: |
+          {% set dc = '' %}
+          {% for line in showrepl.stdout_lines %}
+          {% set l = line.strip() %}
+          {% if l != '' %}
+            {% if l.startswith('Default-First-Site-Name') or l.startswith('CN=') or l.startswith('DC=') %}
+{{ l }}
+            {% elif l.startswith('DSA Options:') or l.startswith('Site Options:') or l.startswith('DSA object GUID:') or l.startswith('DSA invocationID:') %}
+{{ l }}
+            {% elif l.startswith('Last attempt') %}
+{{ l }}
+            {% endif %}
+          {% endif %}
+          {% endfor %}
