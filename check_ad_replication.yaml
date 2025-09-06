@@ -12,15 +12,16 @@
 
     - name: Parse only the lines with DSA and delta times
       set_fact:
-        # Only keep lines that contain a delta time like 'XXm:YYs'
         repl_lines: "{{ repl_summary.stdout_lines | select('search','[0-9]+m:[0-9]+s') | list }}"
 
-    - name: Split lines into sources and destinations
+    - name: Determine sources and destinations dynamically
       set_fact:
-        source_lines: "{{ repl_lines[0:2] }}"
-        dest_lines: "{{ repl_lines[2:4] }}"
+        # Half of the lines for sources, rest for destinations
+        half: "{{ (repl_lines | length // 2) | int }}"
+        source_lines: "{{ repl_lines[:half] }}"
+        dest_lines: "{{ repl_lines[half:] }}"
 
-    - name: Show cleaned replication summary (2 sources + 2 destinations)
+    - name: Show cleaned replication summary
       debug:
         msg: |
           Source DSA          largest delta    fails/total %%   error
