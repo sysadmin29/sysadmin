@@ -10,10 +10,10 @@
       register: repl_summary
       ignore_errors: yes
 
-    - name: Parse meaningful summary lines
+    - name: Parse only the lines with DSA and delta times
       set_fact:
-        # Filter out headers, empty lines, and lines with '-----'
-        repl_lines: "{{ repl_summary.stdout_lines | reject('match','^\\s*(Source|Destination|[-]+|$)') | list }}"
+        # Only keep lines that contain a delta time like 'XXm:YYs'
+        repl_lines: "{{ repl_summary.stdout_lines | select('search','[0-9]+m:[0-9]+s') | list }}"
 
     - name: Split lines into sources and destinations
       set_fact:
@@ -25,10 +25,10 @@
         msg: |
           Source DSA          largest delta    fails/total %%   error
           {% for line in source_lines %}
-          {{ line.strip() }}
+          {{ line }}
           {% endfor %}
 
           Destination DSA     largest delta    fails/total %%   error
           {% for line in dest_lines %}
-          {{ line.strip() }}
+          {{ line }}
           {% endfor %}
