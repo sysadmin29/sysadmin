@@ -13,16 +13,16 @@
       debug:
         msg: |
           {% for line in replsummary.stdout_lines %}
-          {% set l = line.strip() %}
-          {% if l != '' and (
-                l.startswith('Beginning data collection') or
-                l.startswith('.....') or
-                l.startswith('Source DSA') or
-                l.startswith('Destination DSA') or
-                (l[0:1].isalpha() and not l.startswith('Experienced') and not l.startswith('Repadmin'))
-          ) %}
+            {% set l = line.strip() %}
+            {% if l != '' and (
+                  l.startswith('Beginning data collection') or
+                  l.startswith('.....') or
+                  l.startswith('Source DSA') or
+                  l.startswith('Destination DSA') or
+                  (l[0:1].isalpha() and not l.startswith('Experienced') and not l.startswith('Repadmin'))
+            ) %}
 {{ l }}
-          {% endif %}
+            {% endif %}
           {% endfor %}
 
     - name: Run repadmin to check replication partners
@@ -34,14 +34,14 @@
       debug:
         msg: |
           {% for line in showrepl.stdout_lines %}
-          {% set l = line.strip() %}
-          {% if l != '' %}
-            {% if l.startswith('Default-First-Site-Name') or l.startswith('CN=') or l.startswith('DC=') %}
+            {% set l = line.strip() %}
+            {% if l != '' %}
+              {% if l.startswith('Default-First-Site-Name') or l.startswith('CN=') or l.startswith('DC=') %}
 {{ l }}
-            {% elif l.startswith('DSA Options:') or l.startswith('Site Options:') or l.startswith('DSA object GUID:') or l.startswith('DSA invocationID:') %}
+              {% elif l.startswith('DSA Options:') or l.startswith('Site Options:') or l.startswith('DSA object GUID:') or l.startswith('DSA invocationID:') %}
 {{ l }}
-            {% elif l.startswith('Last attempt') %}
+              {% elif l.startswith('Last attempt') %}
 {{ l }}
+              {% endif %}
             {% endif %}
-          {% endif %}
           {% endfor %}
