@@ -10,10 +10,12 @@
       register: repl_summary
       ignore_errors: yes
 
-    - name: Parse replication summary
+    - name: Parse only the summary lines (skip numbered lines)
       set_fact:
-        # Only keep lines containing DC names and summary info
-        repl_lines: "{{ repl_summary.stdout_lines | select('search','AURA-DC') | list }}"
+        repl_lines: >-
+          {{ repl_summary.stdout_lines
+             | select('match','^AURA-DC') 
+             | list }}
 
     - name: Show cleaned replication summary (2 sources + 2 destinations)
       debug:
