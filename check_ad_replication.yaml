@@ -16,7 +16,6 @@
 
     - name: Determine sources and destinations dynamically
       set_fact:
-        # Half of the lines for sources, rest for destinations
         half: "{{ (repl_lines | length // 2) | int }}"
         source_lines: "{{ repl_lines[:half] }}"
         dest_lines: "{{ repl_lines[half:] }}"
