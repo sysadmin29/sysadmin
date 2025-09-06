@@ -9,39 +9,54 @@
       register: replsummary
       failed_when: false
 
-    - name: Show replication summary (clean)
-      debug:
-        msg: |
-          {% for line in replsummary.stdout_lines %}
-            {% set l = line.strip() %}
-            {% if l != '' and (
+    - name: Process replication summary
+      set_fact:
+        cleaned_summary: >-
+          {%- set output = [] -%}
+          {%- for line in replsummary.stdout_lines -%}
+            {%- set l = line.strip() -%}
+            {%- if l != '' and (
                   l.startswith('Beginning data collection') or
                   l.startswith('.....') or
                   l.startswith('Source DSA') or
                   l.startswith('Destination DSA') or
                   (l[0:1].isalpha() and not l.startswith('Experienced') and not l.startswith('Repadmin'))
-            ) %}
-{{ l }}
-            {% endif %}
-          {% endfor %}
+            ) -%}
+              {{- output.append(l) -}}
+            {%- endif -%}
+          {%- endfor -%}
+          {{- output | join('\n') -}}
+
+    - name: Show cleaned replication summary
+      debug:
+        msg: "{{ cleaned_summary }}"
 
     - name: Run repadmin to check replication partners
       win_command: repadmin /showrepl
       register: showrepl
       failed_when: false
 
-    - name: Show replication details (clean)
+    - name: Process replication details
+      set_fact:
+        cleaned_details: >-
+          {%- set output = [] -%}
+          {%- for line in showrepl.stdout_lines -%}
+            {%- set l = line.strip() -%}
+            {%- if l != '' -%}
+              {%- if l.startswith('Default-First-Site-Name') 
+                   or l.startswith('CN=') 
+                   or l.startswith('DC=') 
+                   or l.startswith('DSA Options:') 
+                   or l.startswith('Site Options:') 
+                   or l.startswith('DSA object GUID:') 
+                   or l.startswith('DSA invocationID:') 
+                   or l.startswith('Last attempt') -%}
+                {{- output.append(l) -}}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{- output | join('\n') -}}
+
+    - name: Show cleaned replication details
       debug:
-        msg: |
-          {% for line in showrepl.stdout_lines %}
-            {% set l = line.strip() %}
-            {% if l != '' %}
-              {% if l.startswith('Default-First-Site-Name') or l.startswith('CN=') or l.startswith('DC=') %}
-{{ l }}
-              {% elif l.startswith('DSA Options:') or l.startswith('Site Options:') or l.startswith('DSA object GUID:') or l.startswith('DSA invocationID:') %}
-{{ l }}
-              {% elif l.startswith('Last attempt') %}
-{{ l }}
-              {% endif %}
-            {% endif %}
-          {% endfor %}
+        msg: "{{ cleaned_details }}"
