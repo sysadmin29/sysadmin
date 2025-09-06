@@ -2,78 +2,36 @@
 - name: Check Active Directory Replication
   hosts: windows
   gather_facts: no
+  vars:
+    dc_list:
+      - 10.50.20.65
+      - 10.50.20.85
 
   tasks:
 
     - name: Run repadmin to check replication status
-      win_command: repadmin /replsummary
-      register: replsummary
-      failed_when: false
+      win_shell: |
+        repadmin /replsummary
+      register: repl_summary
+      ignore_errors: yes
 
     - name: Process replication summary into list
       set_fact:
-        source_list: >-
-          {%- set output = [] -%}
-          {%- for line in replsummary.stdout_lines -%}
-            {%- set l = line.strip() -%}
-            {%- if l != '' and (l[0:1].isalpha() and 'Source DSA' not in l and 'Destination DSA' not in l and not l.startswith('Experienced') and not l.startswith('Repadmin')) -%}
-              {{- output.append(l) -}}
-            {%- endif -%}
-          {%- endfor -%}
-          {{ output }}
-        destination_list: >-
-          {%- set output = [] -%}
-          {%- for line in replsummary.stdout_lines -%}
-            {%- set l = line.strip() -%}
-            {%- if l != '' and (l[0:1].isalpha() and 'Destination DSA' not in l and not l.startswith('Source DSA') and not l.startswith('Experienced') and not l.startswith('Repadmin')) -%}
-              {{- output.append(l) -}}
-            {%- endif -%}
-          {%- endfor -%}
-          {{ output }}
-
+        summary_lines: "{{ repl_summary.stdout_lines | select('search', 'DSA') | list }}"
+    
     - name: Show cleaned replication summary (2 sources + 2 destinations)
       debug:
         msg: |
           Source DSA          largest delta    fails/total %%   error
-          {% for line in source_list %}
+          Replication Summary Start Time: {{ repl_summary.start }}
+          Beginning data collection for replication summary, this may take awhile:
+          {% for line in summary_lines[0:2] %}
           {{ line }}
           {% endfor %}
 
           Destination DSA     largest delta    fails/total %%   error
-          {% for line in destination_list %}
-          {{ line }}
-          {% endfor %}
-
-    - name: Run repadmin to check replication partners
-      win_command: repadmin /showrepl
-      register: showrepl
-      failed_when: false
-
-    - name: Process replication details into structured list
-      set_fact:
-        cleaned_details_list: >-
-          {%- set output = [] -%}
-          {%- set current_dc = '' -%}
-          {%- for line in showrepl.stdout_lines -%}
-            {%- set l = line.strip() -%}
-            {%- if l != '' -%}
-              {%- if l.startswith('Default-First-Site-Name') -%}
-                {{- output.append("\n" + l) -}}
-                {%- set current_dc = l -%}
-              {%- elif l.startswith('CN=') or l.startswith('DC=') -%}
-                {{- output.append("  Partition: " + l) -}}
-              {%- elif l.startswith('DSA Options:') or l.startswith('Site Options:') or l.startswith('DSA object GUID:') or l.startswith('DSA invocationID:') -%}
-                {{- output.append("    " + l) -}}
-              {%- elif l.startswith('Last attempt') -%}
-                {{- output.append("    " + l) -}}
-              {%- endif -%}
-            {%- endif -%}
-          {%- endfor -%}
-          {{ output }}
-
-    - name: Show cleaned replication details (vertical)
-      debug:
-        msg: |
-          {% for line in cleaned_details_list %}
+          Replication Summary Start Time: {{ repl_summary.start }}
+          Beginning data collection for replication summary, this may take awhile:
+          {% for line in summary_lines[2:4] %}
           {{ line }}
           {% endfor %}
