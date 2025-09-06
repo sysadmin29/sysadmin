@@ -10,9 +10,9 @@
       register: repl_summary
       ignore_errors: yes
 
-    - name: Parse only the summary lines (DSA lines with times)
+    - name: Parse only the summary lines with delta times
       set_fact:
-        repl_lines: "{{ repl_summary.stdout_lines | select('search', 'AURA-DC') | map('regex_replace', '^\\s*\\d*\\s*-\\s*', '') | list }}"
+        repl_lines: "{{ repl_summary.stdout_lines | select('search','[0-9]+[hm]:[0-9]+s') | list }}"
 
     - name: Show cleaned replication summary (2 sources + 2 destinations)
       debug:
