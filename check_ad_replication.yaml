@@ -28,6 +28,40 @@
           {%- endfor -%}
           {{ output }}
 
+    - name: Show cleaned replication summary (vertical)
+      debug:
+        msg: |
+          {% for line in cleaned_summary_list %}
+          {{ line }}
+          {% endfor %}
+
+    - name: Run repadmin to check replication partners
+      win_command: repadmin /showrepl
+      register: showrepl
+      failed_when: false
+
+    - name: Process replication details into structured list
+      set_fact:
+        cleaned_details_list: >-
+          {%- set output = [] -%}
+          {%- set current_dc = '' -%}
+          {%- for line in showrepl.stdout_lines -%}
+            {%- set l = line.strip() -%}
+            {%- if l != '' -%}
+              {%- if l.startswith('Default-First-Site-Name') -%}
+                {%- set current_dc = l -%}
+                {{- output.append(l) -}}
+              {%- elif l.startswith('CN=') or l.startswith('DC=') -%}
+                {{- output.append("  Partition: " + l) -}}
+              {%- elif l.startswith('DSA Options:') or l.startswith('Site Options:') or l.startswith('DSA object GUID:') or l.startswith('DSA invocationID:') -%}
+                {{- output.append("    " + l) -}}
+              {%- elif l.startswith('Last attempt') -%}
+                {{- output.append("    " + l) -}}
+              {%- endif -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ output }}
+
     - name: Show cleaned replication details (vertical)
       debug:
         msg: |
