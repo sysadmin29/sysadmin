@@ -26,16 +26,10 @@
                       | sum(start=[]) }}"
       run_once: true
 
-    - name: Calculate half safely
+    - name: Split into sources and destinations (safe slicing)
       set_fact:
-        half: "{{ (all_repl | length // 2) | int }}"
-        all_repl_list: "{{ all_repl | list }}"
-      run_once: true
-
-    - name: Split into sources and destinations
-      set_fact:
-        source_lines: "{{ all_repl_list[0:half] }}"
-        dest_lines: "{{ all_repl_list[half:] }}"
+        source_lines: "{{ all_repl | list | slice((all_repl | length // 2) | int) | first }}"
+        dest_lines: "{{ all_repl | list | slice((all_repl | length // 2) | int) | last }}"
       run_once: true
 
     - name: Show replication summary (full, like AD)
