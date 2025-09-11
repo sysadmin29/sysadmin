@@ -38,10 +38,23 @@
           }}
       run_once: true
 
-    - name: Build source and destination lists (mirrored)
+    - name: Build source and destination lists (mirrored by DC name)
       set_fact:
-        source_lines: "{{ repl_map.keys() | map('regex_replace', '^(.*)$', '\\1   ' ) | list | zip(repl_map.values() | list) | map('join', '') | list }}"
-        dest_lines: "{{ source_lines | reverse }}"
+        source_lines: >-
+          {{
+            repl_map
+            | dict2items
+            | map('join', '   ')
+            | list
+          }}
+        dest_lines: >-
+          {{
+            repl_map
+            | dict2items
+            | map('reverse')
+            | map('join', '   ')
+            | list
+          }}
       run_once: true
 
     - name: Show replication summary (mirrored like AD)
