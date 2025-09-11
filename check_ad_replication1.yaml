@@ -33,19 +33,15 @@
             dict(
               all_repl
               | map('regex_replace', '^([A-Za-z0-9.-]+)[ \t]+(.*)', '\\1|\\2')
-              | map('split', '|', 1)
+              | map('split', '|', 2)
             )
           }}
       run_once: true
 
-    - name: Build source and destination lists (mirrored by name)
+    - name: Build source and destination lists (mirrored)
       set_fact:
-        source_lines: >-
-          {{ repl_map | dict2items | map(attribute='key') |
-             map('regex_replace', '^(.*)$', '\\1   ' ~ repl_map[\\1]) | list }}
-        dest_lines: >-
-          {{ repl_map | dict2items | map(attribute='key') |
-             map('regex_replace', '^(.*)$', '\\1   ' ~ repl_map[\\1]) | reverse | list }}
+        source_lines: "{{ repl_map.keys() | map('regex_replace', '^(.*)$', '\\1   ' ) | list | zip(repl_map.values() | list) | map('join', '') | list }}"
+        dest_lines: "{{ source_lines | reverse }}"
       run_once: true
 
     - name: Show replication summary (mirrored like AD)
