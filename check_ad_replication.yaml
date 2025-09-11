@@ -12,13 +12,16 @@
 
     - name: Parse only the lines with DSA and delta times
       set_fact:
-        repl_lines: "{{ repl_summary.stdout_lines | select('search','[0-9]+m:[0-9]+s') | list }}"
+        repl_lines: >-
+          {{ (repl_summary.stdout_lines | select('search','[0-9]+m:[0-9]+s') | list)
+             if (repl_summary is defined and repl_summary.stdout_lines is defined)
+             else [] }}
 
     - name: Determine sources and destinations safely
       set_fact:
         half: "{{ (repl_lines | length // 2) | int }}"
-        source_lines: "{{ repl_lines[:half] if repl_lines|length > 1 else repl_lines }}"
-        dest_lines: "{{ repl_lines[half:] if repl_lines|length > 1 else [] }}"
+        source_lines: "{{ (repl_lines[:half]) if (repl_lines|length > 1) else repl_lines }}"
+        dest_lines: "{{ (repl_lines[half:]) if (repl_lines|length > 1) else [] }}"
 
     - name: Show cleaned replication summary
       debug:
@@ -28,7 +31,7 @@
           {{ line }}
           {% endfor %}
 
-          {% if dest_lines %}
+          {% if dest_lines|length > 0 %}
           Destination DSA     largest delta    fails/total %%   error
           {% for line in dest_lines %}
           {{ line }}
