@@ -10,10 +10,10 @@
       register: repl_summary
       changed_when: false
 
-    - name: Extract replication rows
+    - name: Extract replication rows (strip leading spaces and match valid lines)
       set_fact:
         repl_lines: "{{ repl_summary.stdout_lines
-                        | map('regex_replace', '^[ \t]+', '')    # strip leading spaces
+                        | map('regex_replace', '^[ \t]+', '')
                         | select('match', '^[A-Za-z0-9.-]+.*[0-9].*/.*')
                         | list }}"
 
