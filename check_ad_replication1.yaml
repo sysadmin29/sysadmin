@@ -26,22 +26,26 @@
                       | sum(start=[]) }}"
       run_once: true
 
-    - name: Build list of dicts (DSA + rest)
+    - name: Build mapping of DC -> metrics
       set_fact:
-        repl_struct: >-
+        repl_map: >-
           {{
-            all_repl
-            | map('regex_replace', '^([A-Za-z0-9.-]+)[ \t]+(.*)', '\\1|\\2')
-            | map('split', '|', 1)
-            | map('list')
-            | list
+            dict(
+              all_repl
+              | map('regex_replace', '^([A-Za-z0-9.-]+)[ \t]+(.*)', '\\1|\\2')
+              | map('split', '|', 1)
+            )
           }}
       run_once: true
 
-    - name: Split into sources and destinations (mirror order)
+    - name: Build source and destination lists (mirrored by name)
       set_fact:
-        source_lines: "{{ repl_struct | map('join', ' ') | list }}"
-        dest_lines:   "{{ repl_struct | reverse | map('join', ' ') | list }}"
+        source_lines: >-
+          {{ repl_map | dict2items | map(attribute='key') |
+             map('regex_replace', '^(.*)$', '\\1   ' ~ repl_map[\\1]) | list }}
+        dest_lines: >-
+          {{ repl_map | dict2items | map(attribute='key') |
+             map('regex_replace', '^(.*)$', '\\1   ' ~ repl_map[\\1]) | reverse | list }}
       run_once: true
 
     - name: Show replication summary (mirrored like AD)
