@@ -2,6 +2,7 @@
 - name: Check AD replication summary
   hosts: windows
   gather_facts: no
+
   tasks:
 
     - name: Run repadmin to check replication status
@@ -11,11 +12,10 @@
 
     - name: Extract replication rows
       set_fact:
-        repl_lines: >-
-          {{ repl_summary.stdout_lines
-             | map('regex_replace', '^[ \t]+', '')   # strip leading spaces
-             | select('match', '^[A-Za-z0-9.-]+.*[0-9].*\\/.*')
-             | list }}
+        repl_lines: "{{ repl_summary.stdout_lines
+                        | map('regex_replace', '^[ \t]+', '')    # strip leading spaces
+                        | select('match', '^[A-Za-z0-9.-]+.*[0-9].*/.*')
+                        | list }}"
 
     - name: Split into sources and destinations
       set_fact:
