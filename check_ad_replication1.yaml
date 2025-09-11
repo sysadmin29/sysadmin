@@ -1,35 +1,44 @@
-- name: Show final AD-style replication summary
-  set_fact:
-    final_output: |
-      Replication Summary Start Time: {{ lookup('pipe', 'date +"%Y-%m-%d %H:%M:%S"') }}
+- name: Check AD Replication
+  hosts: all
+  gather_facts: no
 
-      Beginning data collection for replication summary, this may take awhile:
-        .....
+  tasks:
+    - name: Show final AD-style replication summary
+      set_fact:
+        final_output: |
+          Replication Summary Start Time: {{ lookup('pipe', 'date +"%Y-%m-%d %H:%M:%S"') }}
 
-      Source DSA          largest delta    fails/total %%   error
-      {% for row in combined_rows if row.startswith('Source') %}
-      {% set parts = row.split() %}
-      {% if parts|length >= 6 %}
-       {{ "%-18s %-15s %-12s %-5s %-10s" | format(
-            parts[1],
-            parts[2],
-            parts[3] ~ " " ~ parts[4] ~ " " ~ parts[5],
-            parts[6],
-            parts[7] if parts|length > 7 else ""
-       ) }}
-      {% endif %}
-      {% endfor %}
+          Beginning data collection for replication summary, this may take awhile:
+            .....
 
-      Destination DSA     largest delta    fails/total %%   error
-      {% for row in combined_rows if row.startswith('Destination') %}
-      {% set parts = row.split() %}
-      {% if parts|length >= 6 %}
-       {{ "%-18s %-15s %-12s %-5s %-10s" | format(
-            parts[1],
-            parts[2],
-            parts[3] ~ " " ~ parts[4] ~ " " ~ parts[5],
-            parts[6],
-            parts[7] if parts|length > 7 else ""
-       ) }}
-      {% endif %}
-      {% endfor %}
+          Source DSA          largest delta    fails/total %%   error
+          {% for row in combined_rows if row.startswith('Source') %}
+          {% set parts = row.split() %}
+          {% if parts|length >= 6 %}
+           {{ "%-18s %-15s %-12s %-5s %-10s" | format(
+                parts[1],
+                parts[2],
+                parts[3] ~ " " ~ parts[4] ~ " " ~ parts[5],
+                parts[6],
+                parts[7] if parts|length > 7 else ""
+           ) }}
+          {% endif %}
+          {% endfor %}
+
+          Destination DSA     largest delta    fails/total %%   error
+          {% for row in combined_rows if row.startswith('Destination') %}
+          {% set parts = row.split() %}
+          {% if parts|length >= 6 %}
+           {{ "%-18s %-15s %-12s %-5s %-10s" | format(
+                parts[1],
+                parts[2],
+                parts[3] ~ " " ~ parts[4] ~ " " ~ parts[5],
+                parts[6],
+                parts[7] if parts|length > 7 else ""
+           ) }}
+          {% endif %}
+          {% endfor %}
+
+    - name: Print final replication summary
+      debug:
+        msg: "{{ final_output }}"
