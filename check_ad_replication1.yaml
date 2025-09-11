@@ -1,6 +1,6 @@
 ---
 - name: Check AD replication summary
-  hosts: all
+  hosts: windows
   gather_facts: no
   tasks:
 
