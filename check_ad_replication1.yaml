@@ -26,13 +26,25 @@
                       | sum(start=[]) }}"
       run_once: true
 
-    - name: Split into sources and destinations (safe slicing)
+    - name: Build dictionary of DSA -> line
       set_fact:
-        source_lines: "{{ all_repl | list | slice((all_repl | length // 2) | int) | first }}"
-        dest_lines: "{{ all_repl | list | slice((all_repl | length // 2) | int) | last }}"
+        repl_dict: >-
+          {{
+            dict(
+              all_repl
+              | map('regex_replace', '([A-Za-z0-9.-]+)[ \t]+(.*)', '\\1|\\2')
+              | map('split', '|', 1)
+            )
+          }}
       run_once: true
 
-    - name: Show replication summary (full, like AD)
+    - name: Prepare source and destination lists
+      set_fact:
+        source_lines: "{{ repl_dict.keys() | sort | map('regex_replace', '^(.*)$', '\\1 ' ~ repl_dict[\\1]) | list }}"
+        dest_lines:  "{{ repl_dict.keys() | sort | reverse | map('regex_replace', '^(.*)$', '\\1 ' ~ repl_dict[\\1]) | list }}"
+      run_once: true
+
+    - name: Show replication summary (mirrored like AD)
       debug:
         msg: |
           Beginning data collection for replication summary, this may take awhile:
