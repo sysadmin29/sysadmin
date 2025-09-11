@@ -9,12 +9,13 @@
       register: repl_summary
       changed_when: false
 
-    - name: Store each host's replication output
+    - name: Save each host's replication output
       set_fact:
         repl_results: "{{ repl_results | default({}) | combine({inventory_hostname: repl_summary.stdout}) }}"
 
-    - name: Show combined replication summary per DC
+    - name: Show combined replication summary (all DCs)
       run_once: true
+      delegate_to: localhost
       debug:
         msg: |
           {% for host, output in repl_results.items() %}
