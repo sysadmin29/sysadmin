@@ -26,11 +26,14 @@
         source_lines: "{{ repl_lines[0:(half | int)] }}"
         dest_lines: "{{ repl_lines[(half | int):] }}"
 
-    - name: Show cleaned replication summary
+    - name: Show replication summary (formatted like repadmin)
       debug:
         msg: |
+          Beginning data collection for replication summary, this may take awhile:
+            .....
+
           Source DSA          largest delta    fails/total %%   error
-          {{ source_lines | join('\n') }}
+           {{ source_lines | join('\n ') }}
 
           Destination DSA     largest delta    fails/total %%   error
-          {{ dest_lines | join('\n') }}
+           {{ dest_lines | join('\n ') }}
