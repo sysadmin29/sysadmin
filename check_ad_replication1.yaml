@@ -9,29 +9,37 @@
       register: repl_summary
       changed_when: false
 
-    - name: Save clean replication section only
+    - name: Extract only replication rows
       set_fact:
-        repl_output: >-
+        repl_rows: >-
           {{
-            repl_summary.stdout.split('Source DSA')[1]
-            | regex_replace('Experienced the following.*','')
-            | trim
+            repl_summary.stdout
+            | regex_findall('^\\s*\\S+\\s+\\d.*$', multiline=True)
           }}
 
-- name: Combine and show synchronized replication summary
+- name: Combine replication rows into aligned summary
   hosts: localhost
   gather_facts: no
   tasks:
-    - name: Build combined replication summary
+    - name: Merge rows from all DCs
       set_fact:
-        combined_repl: |
-          ===== Active Directory Replication Summary (all DCs) =====
+        combined_rows: >-
+          {% set allrows = [] %}
           {% for host in groups['windows'] %}
-          --- From {{ host }} ---
-          {{ hostvars[host].repl_output }}
+            {% set _ = allrows.extend(hostvars[host].repl_rows) %}
+          {% endfor %}
+          {{ allrows }}
 
+    - name: Build aligned replication table
+      set_fact:
+        final_table: |
+          ===== Active Directory Replication Summary (all DCs) =====
+          Source/Destination    Largest Delta    Fails/Total    %%   Error
+          ----------------------------------------------------------------
+          {% for row in combined_rows %}
+          {{ "%-20s %-15s %-12s %-5s %-10s" | format(*row.split()) }}
           {% endfor %}
 
-    - name: Show final synced replication summary
+    - name: Show aligned replication summary
       debug:
-        msg: "{{ combined_repl }}"
+        msg: "{{ final_table }}"
