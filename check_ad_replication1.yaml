@@ -9,7 +9,9 @@
       register: repl_summary
       changed_when: false
 
-    - name: Save each host's replication output
+    - name: Collect each host's output on localhost
+      delegate_to: localhost
+      run_once: false
       set_fact:
         repl_results: "{{ repl_results | default({}) | combine({inventory_hostname: repl_summary.stdout}) }}"
 
