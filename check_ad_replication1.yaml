@@ -5,27 +5,23 @@
   tasks:
 
     - name: Run repadmin to check replication status
-      command: repadmin /replsummary
+      win_command: repadmin /replsummary
       register: repl_summary
       changed_when: false
 
-    - name: Extract source lines
+    - name: Extract replication rows
       set_fact:
-        source_lines: >-
+        repl_lines: >-
           {{ repl_summary.stdout_lines
              | map('regex_replace', '^[ \t]+', '')   # strip leading spaces
              | select('match', '^[A-Za-z0-9.-]+.*[0-9].*\\/.*')
-             | list
-             | difference(dest_lines | default([])) }}
+             | list }}
 
-    - name: Extract destination lines
+    - name: Split into sources and destinations
       set_fact:
-        dest_lines: >-
-          {{ repl_summary.stdout_lines
-             | map('regex_replace', '^[ \t]+', '')   # strip leading spaces
-             | select('match', '^[A-Za-z0-9.-]+.*[0-9].*\\/.*')
-             | list
-             | difference(source_lines | default([])) }}
+        half: "{{ (repl_lines | length) // 2 }}"
+        source_lines: "{{ repl_lines[0:half] }}"
+        dest_lines: "{{ repl_lines[half:] }}"
 
     - name: Show cleaned replication summary
       debug:
