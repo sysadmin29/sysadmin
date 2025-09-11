@@ -1,45 +1,35 @@
----
-- name: Gather replication summary from all DCs
-  hosts: windows
-  gather_facts: no
+- name: Show final AD-style replication summary
+  set_fact:
+    final_output: |
+      Replication Summary Start Time: {{ lookup('pipe', 'date +"%Y-%m-%d %H:%M:%S"') }}
 
-  tasks:
-    - name: Run repadmin /replsummary on each DC
-      win_command: repadmin /replsummary
-      register: repl_summary
-      changed_when: false
+      Beginning data collection for replication summary, this may take awhile:
+        .....
 
-    - name: Extract only replication rows
-      set_fact:
-        repl_rows: >-
-          {{
-            repl_summary.stdout
-            | regex_findall('^\\s*\\S+\\s+\\d.*$', multiline=True)
-          }}
+      Source DSA          largest delta    fails/total %%   error
+      {% for row in combined_rows if row.startswith('Source') %}
+      {% set parts = row.split() %}
+      {% if parts|length >= 6 %}
+       {{ "%-18s %-15s %-12s %-5s %-10s" | format(
+            parts[1],
+            parts[2],
+            parts[3] ~ " " ~ parts[4] ~ " " ~ parts[5],
+            parts[6],
+            parts[7] if parts|length > 7 else ""
+       ) }}
+      {% endif %}
+      {% endfor %}
 
-- name: Combine replication rows into aligned summary
-  hosts: localhost
-  gather_facts: no
-  tasks:
-    - name: Merge rows from all DCs
-      set_fact:
-        combined_rows: >-
-          {% set allrows = [] %}
-          {% for host in groups['windows'] %}
-            {% set _ = allrows.extend(hostvars[host].repl_rows) %}
-          {% endfor %}
-          {{ allrows }}
-
-    - name: Build aligned replication table
-      set_fact:
-        final_table: |
-          ===== Active Directory Replication Summary (all DCs) =====
-          Source/Destination    Largest Delta    Fails/Total    %%   Error
-          ----------------------------------------------------------------
-          {% for row in combined_rows %}
-          {{ "%-20s %-15s %-12s %-5s %-10s" | format(*row.split()) }}
-          {% endfor %}
-
-    - name: Show aligned replication summary
-      debug:
-        msg: "{{ final_table }}"
+      Destination DSA     largest delta    fails/total %%   error
+      {% for row in combined_rows if row.startswith('Destination') %}
+      {% set parts = row.split() %}
+      {% if parts|length >= 6 %}
+       {{ "%-18s %-15s %-12s %-5s %-10s" | format(
+            parts[1],
+            parts[2],
+            parts[3] ~ " " ~ parts[4] ~ " " ~ parts[5],
+            parts[6],
+            parts[7] if parts|length > 7 else ""
+       ) }}
+      {% endif %}
+      {% endfor %}
