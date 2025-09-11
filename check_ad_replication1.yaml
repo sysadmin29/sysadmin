@@ -21,14 +21,10 @@
       debug:
         var: repl_lines
 
-    - name: Ensure half is safe integer
+    - name: Define sources and destinations (mirror both)
       set_fact:
-        half: "{{ (repl_lines | length // 2) | int }}"
-
-    - name: Split into sources and destinations safely
-      set_fact:
-        source_lines: "{{ repl_lines[0:(half|int)] }}"
-        dest_lines: "{{ repl_lines[(half|int):] }}"
+        source_lines: "{{ repl_lines }}"
+        dest_lines: "{{ repl_lines | reverse }}"   # flip order for destinations
 
     - name: Show cleaned replication summary
       debug:
