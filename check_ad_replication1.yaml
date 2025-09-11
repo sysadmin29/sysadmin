@@ -26,7 +26,7 @@
                       | sum(start=[]) }}"
       run_once: true
 
-    - name: Build mapping of DC -> metrics
+    - name: Build DC -> metrics dictionary
       set_fact:
         repl_map: >-
           {{
@@ -38,22 +38,24 @@
           }}
       run_once: true
 
-    - name: Build source and destination lists (mirrored by DC name)
+    - name: Build Source list (as-is)
       set_fact:
         source_lines: >-
           {{
-            repl_map
-            | dict2items
-            | map('join', '   ')
+            repl_map.keys()
+            | map('regex_replace', '(.*)', '\\1   ' + repl_map[\\1])
             | list
           }}
+      run_once: true
+
+    - name: Build Destination list (mirrored)
+      set_fact:
         dest_lines: >-
           {{
-            repl_map
-            | dict2items
-            | map('reverse')
-            | map('join', '   ')
-            | list
+            [
+              'AURA-DC-02   ' ~ repl_map['AURA-DC-03'],
+              'AURA-DC-03   ' ~ repl_map['AURA-DC-02']
+            ]
           }}
       run_once: true
 
