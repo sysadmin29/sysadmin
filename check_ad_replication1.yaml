@@ -10,23 +10,23 @@
       register: repl_summary
       ignore_errors: yes
 
-    - name: Parse only the lines with DSA and delta times
+    - name: Extract source lines
       set_fact:
-        repl_lines: "{{ repl_summary.stdout_lines | select('search','^[ ]*[A-Za-z0-9.-]+[ ]+[0-9]+m:[0-9]+s') | list }}"
+        source_lines: "{{ repl_summary.stdout_lines | select('search','^ *[A-Za-z0-9.-]+.*m:.*s') | list | slice( (repl_summary.stdout_lines | select('search','^Destination DSA') | list | length > 0) | ternary( (repl_summary.stdout_lines | index('Destination DSA')), (repl_summary.stdout_lines|length) ) ) }}"
 
-    - name: Sort replication lines alphabetically
+    - name: Extract destination lines
       set_fact:
-        sorted_lines: "{{ repl_lines | sort }}"
+        dest_lines: "{{ repl_summary.stdout_lines[ (repl_summary.stdout_lines | map('trim') | list).index('Destination DSA     largest delta    fails/total %%   error') + 1 : ] | select('search','^ *[A-Za-z0-9.-]+.*m:.*s') | list }}"
 
     - name: Show cleaned replication summary
       debug:
         msg: |
           Source DSA          largest delta    fails/total %%   error
-          {% for line in sorted_lines %}
+          {% for line in source_lines %}
           {{ line }}
           {% endfor %}
 
           Destination DSA     largest delta    fails/total %%   error
-          {% for line in sorted_lines %}
+          {% for line in dest_lines %}
           {{ line }}
           {% endfor %}
