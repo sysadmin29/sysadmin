@@ -10,29 +10,21 @@
       register: repl_summary
       ignore_errors: yes
 
-    - name: Debug raw repadmin output
-      debug:
-        var: repl_summary.stdout_lines
-
-    - name: Extract only relevant lines (skip noise)
+    - name: Extract only relevant lines (with delta times)
       set_fact:
         repl_lines: >-
           {{ repl_summary.stdout_lines
-             | select('search','m:.*s')
+             | select('search','[0-9]+m:[0-9]+s')
              | list }}
 
-    - name: Debug parsed replication lines
-      debug:
-        var: repl_lines
-
-    - name: Calculate half as integer
+    - name: Ensure half is an integer
       set_fact:
         half: "{{ (repl_lines | length // 2) | int }}"
 
     - name: Split into sources and destinations
       set_fact:
-        source_lines: "{{ repl_lines[:half] }}"
-        dest_lines: "{{ repl_lines[half:] }}"
+        source_lines: "{{ repl_lines | list | slice(0, half) }}"
+        dest_lines: "{{ repl_lines | list | slice(half, (repl_lines | length)) }}"
 
     - name: Show cleaned replication summary
       debug:
