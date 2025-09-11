@@ -17,11 +17,14 @@
              if (repl_summary is defined and repl_summary.stdout_lines is defined)
              else [] }}
 
-    - name: Determine sources and destinations safely
+    - name: Calculate half safely
       set_fact:
         half: "{{ (repl_lines | length // 2) | int }}"
-        source_lines: "{{ (repl_lines[:half]) if (repl_lines|length > 1) else repl_lines }}"
-        dest_lines: "{{ (repl_lines[half:]) if (repl_lines|length > 1) else [] }}"
+
+    - name: Split into sources and destinations
+      set_fact:
+        source_lines: "{{ repl_lines[0:half] | default([]) }}"
+        dest_lines: "{{ repl_lines[half:] | default([]) }}"
 
     - name: Show cleaned replication summary
       debug:
