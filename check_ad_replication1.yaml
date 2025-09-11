@@ -10,44 +10,7 @@
       register: repl_summary
       changed_when: false
 
-    - name: Extract only replication lines (skip headers)
-      set_fact:
-        repl_lines: "{{ repl_summary.stdout_lines
-                        | map('regex_replace', '^[ \t]+', '')
-                        | select('match', '^(AURA-DC|[A-Za-z0-9.-]+)[ \t]+[0-9]')
-                        | list }}"
-
-    - name: Collect all results
-      set_fact:
-        all_repl: "{{ hostvars
-                      | dict2items
-                      | map(attribute='value.repl_lines')
-                      | select('defined')
-                      | sum(start=[]) }}"
-      run_once: true
-
-    - name: Build map of DC -> metrics
-      set_fact:
-        repl_map: "{{ dict(all_repl
-                           | map('regex_replace', '^([^ ]+) +(.*)', '\\1|\\2')
-                           | map('split', '|', 2)) }}"
-      run_once: true
-
-    - name: Show replication summary (sync view)
+    - name: Show replication summary (raw, synced like AD)
       debug:
-        msg: |
-          Replication Summary Start Time: {{ '%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch | int) }}
-
-          Beginning data collection for replication summary, this may take awhile:
-            .....
-
-          Source DSA          largest delta    fails/total %%   error
-          {% for k, v in repl_map.items() %}
-           {{ k }}   {{ v }}
-          {% endfor %}
-
-          Destination DSA     largest delta    fails/total %%   error
-          {% for k, v in repl_map.items() %}
-           {{ k }}   {{ v }}
-          {% endfor %}
+        msg: "{{ repl_summary.stdout }}"
       run_once: true
