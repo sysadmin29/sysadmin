@@ -3,7 +3,26 @@
   gather_facts: no
 
   tasks:
-    - name: Show final AD-style replication summary
+    - name: Run repadmin replsummary on each DC
+      win_command: repadmin /replsummary
+      register: repl_output
+
+    - name: Save replication output fact
+      set_fact:
+        repl_summary: "{{ repl_output.stdout_lines }}"
+
+    - name: Share replication output with localhost
+      delegate_to: localhost
+      run_once: false
+      set_fact:
+        all_repl: "{{ all_repl | default({}) | combine({inventory_hostname: repl_summary}) }}"
+
+- name: Format AD-style replication summary
+  hosts: localhost
+  gather_facts: no
+
+  tasks:
+    - name: Build formatted replication summary
       set_fact:
         final_output: |
           Replication Summary Start Time: {{ lookup('pipe', 'date +"%Y-%m-%d %H:%M:%S"') }}
@@ -11,34 +30,21 @@
           Beginning data collection for replication summary, this may take awhile:
             .....
 
+          {% for host, rows in all_repl.items() %}
+          ===== From {{ host }} =====
+
           Source DSA          largest delta    fails/total %%   error
-          {% for row in combined_rows if row.startswith('Source') %}
-          {% set parts = row.split() %}
-          {% if parts|length >= 6 %}
-           {{ "%-18s %-15s %-12s %-5s %-10s" | format(
-                parts[1],
-                parts[2],
-                parts[3] ~ " " ~ parts[4] ~ " " ~ parts[5],
-                parts[6],
-                parts[7] if parts|length > 7 else ""
-           ) }}
-          {% endif %}
+          {% for line in rows if line.startswith(" ") and not line.startswith(" Destination") %}
+          {{ line }}
           {% endfor %}
 
           Destination DSA     largest delta    fails/total %%   error
-          {% for row in combined_rows if row.startswith('Destination') %}
-          {% set parts = row.split() %}
-          {% if parts|length >= 6 %}
-           {{ "%-18s %-15s %-12s %-5s %-10s" | format(
-                parts[1],
-                parts[2],
-                parts[3] ~ " " ~ parts[4] ~ " " ~ parts[5],
-                parts[6],
-                parts[7] if parts|length > 7 else ""
-           ) }}
-          {% endif %}
+          {% for line in rows if line.startswith(" ") and not line.startswith(" Source") %}
+          {{ line }}
           {% endfor %}
 
-    - name: Print final replication summary
+          {% endfor %}
+
+    - name: Print replication summary
       debug:
         msg: "{{ final_output }}"
