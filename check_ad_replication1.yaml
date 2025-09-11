@@ -26,22 +26,22 @@
                       | sum(start=[]) }}"
       run_once: true
 
-    - name: Build dictionary of DSA -> line
+    - name: Build list of dicts (DSA + rest)
       set_fact:
-        repl_dict: >-
+        repl_struct: >-
           {{
-            dict(
-              all_repl
-              | map('regex_replace', '([A-Za-z0-9.-]+)[ \t]+(.*)', '\\1|\\2')
-              | map('split', '|', 1)
-            )
+            all_repl
+            | map('regex_replace', '^([A-Za-z0-9.-]+)[ \t]+(.*)', '\\1|\\2')
+            | map('split', '|', 1)
+            | map('list')
+            | list
           }}
       run_once: true
 
-    - name: Prepare source and destination lists
+    - name: Split into sources and destinations (mirror order)
       set_fact:
-        source_lines: "{{ repl_dict.keys() | sort | map('regex_replace', '^(.*)$', '\\1 ' ~ repl_dict[\\1]) | list }}"
-        dest_lines:  "{{ repl_dict.keys() | sort | reverse | map('regex_replace', '^(.*)$', '\\1 ' ~ repl_dict[\\1]) | list }}"
+        source_lines: "{{ repl_struct | map('join', ' ') | list }}"
+        dest_lines:   "{{ repl_struct | reverse | map('join', ' ') | list }}"
       run_once: true
 
     - name: Show replication summary (mirrored like AD)
