@@ -21,10 +21,10 @@
       set_fact:
         half: "{{ (repl_lines | length // 2) | int }}"
 
-    - name: Split lines into source and destination
+    - name: Split into sources and destinations (mirrored)
       set_fact:
         source_lines: "{{ repl_lines[0:(half | int)] }}"
-        dest_lines: "{{ repl_lines[(half | int):] }}"
+        dest_lines: "{{ repl_lines[(half | int):] | reverse }}"   # mirror like AD
 
     - name: Show replication summary (formatted like repadmin)
       debug:
