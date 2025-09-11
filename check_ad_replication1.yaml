@@ -26,37 +26,19 @@
                       | sum(start=[]) }}"
       run_once: true
 
-    - name: Build DC -> metrics dictionary
+    - name: Build map of DC -> metrics
       set_fact:
-        repl_map: >-
-          {{
-            dict(
-              all_repl
-              | map('regex_replace', '^([A-Za-z0-9.-]+)[ \t]+(.*)', '\\1|\\2')
-              | map('split', '|', 2)
-            )
-          }}
+        repl_map: "{{ dict(all_repl | map('regex_replace', '^([^ ]+) +(.*)', '\\1|\\2') | map('split', '|', 2)) }}"
       run_once: true
 
-    - name: Build Source list (as-is)
+    - name: Define source and destination lists
       set_fact:
-        source_lines: >-
-          {{
-            repl_map.keys()
-            | map('regex_replace', '(.*)', '\\1   ' + repl_map[\\1])
-            | list
-          }}
-      run_once: true
-
-    - name: Build Destination list (mirrored)
-      set_fact:
-        dest_lines: >-
-          {{
-            [
-              'AURA-DC-02   ' ~ repl_map['AURA-DC-03'],
-              'AURA-DC-03   ' ~ repl_map['AURA-DC-02']
-            ]
-          }}
+        source_lines:
+          - "AURA-DC-02   {{ repl_map['AURA-DC-02'] | default('') }}"
+          - "AURA-DC-03   {{ repl_map['AURA-DC-03'] | default('') }}"
+        dest_lines:
+          - "AURA-DC-02   {{ repl_map['AURA-DC-03'] | default('') }}"
+          - "AURA-DC-03   {{ repl_map['AURA-DC-02'] | default('') }}"
       run_once: true
 
     - name: Show replication summary (mirrored like AD)
