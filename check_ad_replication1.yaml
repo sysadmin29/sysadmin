@@ -1,6 +1,6 @@
 ---
 - name: Check AD replication summary
-  hosts: windows
+  hosts: 10.50.20.65   # run only on one DC
   gather_facts: no
 
   tasks:
@@ -10,7 +10,7 @@
       register: repl_summary
       changed_when: false
 
-    - name: Extract replication rows (strip leading spaces and match valid lines)
+    - name: Extract replication rows (clean up lines)
       set_fact:
         repl_lines: "{{ repl_summary.stdout_lines
                         | map('regex_replace', '^[ \t]+', '')
@@ -21,10 +21,10 @@
       set_fact:
         half: "{{ (repl_lines | length // 2) | int }}"
 
-    - name: Split into sources and destinations (mirrored)
+    - name: Split into sources and destinations (mirror like AD)
       set_fact:
         source_lines: "{{ repl_lines[0:(half | int)] }}"
-        dest_lines: "{{ repl_lines[(half | int):] | reverse }}"   # mirror like AD
+        dest_lines: "{{ repl_lines[(half | int):] | reverse }}"
 
     - name: Show replication summary (formatted like repadmin)
       debug:
