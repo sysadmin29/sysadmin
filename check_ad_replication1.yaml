@@ -1,40 +1,37 @@
 ---
-- name: Check Active Directory Replication
-  hosts: windows
+- name: Check AD replication summary
+  hosts: all
   gather_facts: no
-
   tasks:
 
     - name: Run repadmin to check replication status
-      win_shell: repadmin /replsummary
+      command: repadmin /replsummary
       register: repl_summary
-      ignore_errors: yes
+      changed_when: false
 
-    - name: Extract only relevant lines (with delta times)
+    - name: Extract source lines
       set_fact:
-        repl_lines: >-
+        source_lines: >-
           {{ repl_summary.stdout_lines
-             | select('search','[0-9]+[hm]:[0-9]+m:[0-9]+s')
-             | list | default([]) }}
+             | map('regex_replace', '^[ \t]+', '')   # strip leading spaces
+             | select('match', '^[A-Za-z0-9.-]+.*[0-9].*\\/.*')
+             | list
+             | difference(dest_lines | default([])) }}
 
-    - name: Debug parsed replication lines
-      debug:
-        var: repl_lines
-
-    - name: Define sources and destinations (mirror both)
+    - name: Extract destination lines
       set_fact:
-        source_lines: "{{ repl_lines }}"
-        dest_lines: "{{ repl_lines | reverse }}"   # flip order for destinations
+        dest_lines: >-
+          {{ repl_summary.stdout_lines
+             | map('regex_replace', '^[ \t]+', '')   # strip leading spaces
+             | select('match', '^[A-Za-z0-9.-]+.*[0-9].*\\/.*')
+             | list
+             | difference(source_lines | default([])) }}
 
     - name: Show cleaned replication summary
       debug:
         msg: |
           Source DSA          largest delta    fails/total %%   error
-          {% for line in source_lines %}
-          {{ line | trim }}
-          {% endfor %}
+          {{ source_lines | join('\n') }}
 
           Destination DSA     largest delta    fails/total %%   error
-          {% for line in dest_lines %}
-          {{ line | trim }}
-          {% endfor %}
+          {{ dest_lines | join('\n') }}
