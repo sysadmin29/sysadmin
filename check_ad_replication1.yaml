@@ -4,13 +4,21 @@
   gather_facts: no
 
   tasks:
-
-    - name: Run repadmin /replsummary
+    - name: Run repadmin /replsummary on each DC
       win_command: repadmin /replsummary
       register: repl_summary
       changed_when: false
 
-    - name: Show replication summary (raw, synced like AD)
-      debug:
-        msg: "{{ repl_summary.stdout }}"
+    - name: Store each host's replication output
+      set_fact:
+        repl_results: "{{ repl_results | default({}) | combine({inventory_hostname: repl_summary.stdout}) }}"
+
+    - name: Show combined replication summary per DC
       run_once: true
+      debug:
+        msg: |
+          {% for host, output in repl_results.items() %}
+          ===== Replication Summary from {{ host }} =====
+          {{ output }}
+
+          {% endfor %}
