@@ -15,16 +15,20 @@
         repl_lines: >-
           {{ repl_summary.stdout_lines
              | select('search','[0-9]+m:[0-9]+s')
-             | list }}
+             | list | default([]) }}
 
-    - name: Ensure half is an integer
-      set_fact:
-        half: "{{ (repl_lines | length // 2) | int }}"
+    - name: Debug parsed replication lines
+      debug:
+        var: repl_lines
 
-    - name: Split into sources and destinations
+    - name: Ensure half is safe integer
       set_fact:
-        source_lines: "{{ repl_lines | list | slice(0, half) }}"
-        dest_lines: "{{ repl_lines | list | slice(half, (repl_lines | length)) }}"
+        half: "{{ (repl_lines | length > 0) | ternary(((repl_lines | length) // 2), 0) }}"
+
+    - name: Split into sources and destinations safely
+      set_fact:
+        source_lines: "{{ repl_lines[0:half] if half > 0 else [] }}"
+        dest_lines: "{{ repl_lines[half:] if half > 0 else [] }}"
 
     - name: Show cleaned replication summary
       debug:
