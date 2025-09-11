@@ -17,20 +17,24 @@
                         | select('match', '^(AURA-DC|[A-Za-z0-9.-]+)[ \t]+[0-9]')
                         | list }}"
 
-    - name: Save results per host
+    - name: Aggregate all results
       set_fact:
-        all_repl: "{{ hostvars | dict2items | json_query('[].value.repl_lines') | sum(start=[]) }}"
+        all_repl: "{{ hostvars
+                      | dict2items
+                      | map(attribute='value.repl_lines')
+                      | select('defined')
+                      | sum(start=[]) }}"
       run_once: true
 
-    - name: Calculate half
+    - name: Calculate half safely
       set_fact:
         half: "{{ (all_repl | length // 2) | int }}"
       run_once: true
 
     - name: Split into sources and destinations
       set_fact:
-        source_lines: "{{ all_repl[0:half] }}"
-        dest_lines: "{{ all_repl[half:] }}"
+        source_lines: "{{ all_repl[0:half] | list }}"
+        dest_lines: "{{ all_repl[half:] | list }}"
       run_once: true
 
     - name: Show replication summary (full, like AD)
