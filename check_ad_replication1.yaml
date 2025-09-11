@@ -14,7 +14,7 @@
         repl_output: "{{ repl_summary.stdout }}"
 
 - name: Combine and show replication summary (all DCs)
-  hosts: localhost
+  hosts: windows
   gather_facts: no
   tasks:
     - name: Show combined replication summaries
