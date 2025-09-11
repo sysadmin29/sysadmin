@@ -17,14 +17,23 @@
              | select('search','^[A-Za-z0-9.-]+.*[0-9]+m:[0-9]+s')
              | list }}
 
-    - name: Calculate half index safely
+    - name: Calculate half as integer
       set_fact:
         half: "{{ (repl_lines | length // 2) | int }}"
 
-    - name: Split into sources and destinations safely
+    - name: Build source_lines list
       set_fact:
-        source_lines: "{{ (repl_lines | list)[0:half] }}"
-        dest_lines: "{{ (repl_lines | list)[half:] }}"
+        source_lines: "{{ repl_lines | zip(range(0, repl_lines|length)) 
+                          | selectattr('1','lt',half) 
+                          | map(attribute='0') 
+                          | list }}"
+
+    - name: Build dest_lines list
+      set_fact:
+        dest_lines: "{{ repl_lines | zip(range(0, repl_lines|length)) 
+                        | selectattr('1','ge',half) 
+                        | map(attribute='0') 
+                        | list }}"
 
     - name: Show cleaned replication summary
       debug:
