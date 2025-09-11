@@ -29,12 +29,13 @@
     - name: Calculate half safely
       set_fact:
         half: "{{ (all_repl | length // 2) | int }}"
+        all_repl_list: "{{ all_repl | list }}"
       run_once: true
 
     - name: Split into sources and destinations
       set_fact:
-        source_lines: "{{ all_repl[0:half] | list }}"
-        dest_lines: "{{ all_repl[half:] | list }}"
+        source_lines: "{{ all_repl_list[0:half] }}"
+        dest_lines: "{{ all_repl_list[half:] }}"
       run_once: true
 
     - name: Show replication summary (full, like AD)
