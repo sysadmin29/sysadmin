@@ -9,19 +9,29 @@
       register: repl_summary
       changed_when: false
 
-    - name: Save each host's result in hostvars
+    - name: Save clean replication section only
       set_fact:
-        repl_output: "{{ repl_summary.stdout }}"
+        repl_output: >-
+          {{
+            repl_summary.stdout.split('Source DSA')[1]
+            | regex_replace('Experienced the following.*','')
+            | trim
+          }}
 
-- name: Combine and show replication summary (all DCs)
-  hosts: windows
+- name: Combine and show synchronized replication summary
+  hosts: localhost
   gather_facts: no
   tasks:
-    - name: Show combined replication summaries
-      debug:
-        msg: |
+    - name: Build combined replication summary
+      set_fact:
+        combined_repl: |
+          ===== Active Directory Replication Summary (all DCs) =====
           {% for host in groups['windows'] %}
-          ===== Replication Summary from {{ host }} =====
+          --- From {{ host }} ---
           {{ hostvars[host].repl_output }}
 
           {% endfor %}
+
+    - name: Show final synced replication summary
+      debug:
+        msg: "{{ combined_repl }}"
