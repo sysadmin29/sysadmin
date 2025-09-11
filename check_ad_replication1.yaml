@@ -1,32 +1,39 @@
 ---
-- name: Check AD replication summary
-  hosts: 10.50.20.65   # run only on one DC
+- name: Gather replication summary from all DCs
+  hosts: windows
   gather_facts: no
 
   tasks:
 
-    - name: Run repadmin to check replication status
+    - name: Run repadmin /replsummary
       win_command: repadmin /replsummary
       register: repl_summary
       changed_when: false
 
-    - name: Extract replication rows (only DC lines)
+    - name: Extract DC lines only
       set_fact:
         repl_lines: "{{ repl_summary.stdout_lines
                         | map('regex_replace', '^[ \t]+', '')
                         | select('match', '^(AURA-DC|[A-Za-z0-9.-]+)[ \t]+[0-9]')
                         | list }}"
 
-    - name: Calculate half length
+    - name: Save results per host
       set_fact:
-        half: "{{ (repl_lines | length // 2) | int }}"
+        all_repl: "{{ hostvars | dict2items | json_query('[].value.repl_lines') | sum(start=[]) }}"
+      run_once: true
+
+    - name: Calculate half
+      set_fact:
+        half: "{{ (all_repl | length // 2) | int }}"
+      run_once: true
 
     - name: Split into sources and destinations
       set_fact:
-        source_lines: "{{ repl_lines[0:(half | int)] }}"
-        dest_lines: "{{ repl_lines[(half | int):] }}"
+        source_lines: "{{ all_repl[0:half] }}"
+        dest_lines: "{{ all_repl[half:] }}"
+      run_once: true
 
-    - name: Show replication summary (formatted like repadmin)
+    - name: Show replication summary (full, like AD)
       debug:
         msg: |
           Beginning data collection for replication summary, this may take awhile:
@@ -41,3 +48,4 @@
           {% for line in dest_lines %}
            {{ line }}
           {% endfor %}
+      run_once: true
