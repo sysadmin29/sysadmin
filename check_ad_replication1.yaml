@@ -10,21 +10,21 @@
       register: repl_summary
       changed_when: false
 
-    - name: Extract replication rows (clean up lines)
+    - name: Extract replication rows (only DC lines)
       set_fact:
         repl_lines: "{{ repl_summary.stdout_lines
                         | map('regex_replace', '^[ \t]+', '')
-                        | select('match', '^[A-Za-z0-9.-]+.*[0-9].*/.*')
+                        | select('match', '^(AURA-DC|[A-Za-z0-9.-]+)[ \t]+[0-9]')
                         | list }}"
 
     - name: Calculate half length
       set_fact:
         half: "{{ (repl_lines | length // 2) | int }}"
 
-    - name: Split into sources and destinations (mirror like AD)
+    - name: Split into sources and destinations
       set_fact:
         source_lines: "{{ repl_lines[0:(half | int)] }}"
-        dest_lines: "{{ repl_lines[(half | int):] | reverse }}"
+        dest_lines: "{{ repl_lines[(half | int):] }}"
 
     - name: Show replication summary (formatted like repadmin)
       debug:
