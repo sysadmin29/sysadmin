@@ -1,6 +1,6 @@
 ---
 - name: Check CPU, memory, and MAC address
-  hosts: 10.50.20.81
+  hosts: all
   gather_facts: no
   tasks:
     - name: Get CPU, memory, and MAC address info
