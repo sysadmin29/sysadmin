@@ -3,29 +3,37 @@
   hosts: all
   gather_facts: no
   tasks:
-    - name: Get CPU, memory, and MAC address info
+    - name: Get CPU, memory, MAC address, and usage percentages
       shell: |
         cpu_cores=$(nproc)
         cpu_model=$(lscpu | grep "Model name" | awk -F: '{print $2}' | sed 's/^ //')
+        
         total_mem=$(free -m | awk '/^Mem:/ { print $2 }')
         used_mem=$(free -m | awk '/^Mem:/ { print $3 }')
         free_mem=$(free -m | awk '/^Mem:/ { print $4 }')
+        mem_percent=$(awk "BEGIN {printf \"%.2f\", ($used_mem/$total_mem)*100}")
+
+        cpu_percent=$(top -bn1 | grep "Cpu(s)" | awk '{print 100 - $8}')
+
         mac_addr=$(ip link show | awk '/ether/ {print $2; exit}')
+
         disk_total=$(df -h / | awk 'NR==2 {print $2}')
         disk_used=$(df -h / | awk 'NR==2 {print $3}')
         disk_avail=$(df -h / | awk 'NR==2 {print $4}')
         disk_usage=$(df -h / | awk 'NR==2 {print $5}')
 
-        echo "CPU Cores     : $cpu_cores"
-        echo "CPU Model     : $cpu_model"
-        echo "Total Memory  : ${total_mem} MB"
-        echo "Used Memory   : ${used_mem} MB"
-        echo "Free Memory   : ${free_mem} MB"
-        echo "MAC Address   : $mac_addr"
-        echo "Disk_Total: $disk_total"
-        echo "Disk_Used: $disk_used"
-        echo "Disk_Available: $disk_avail"
-        echo "Disk_Usage: $disk_usage"
+        echo "CPU Cores      : $cpu_cores"
+        echo "CPU Model      : $cpu_model"
+        echo "CPU Usage      : ${cpu_percent}%"
+        echo "Total Memory   : ${total_mem} MB"
+        echo "Used Memory    : ${used_mem} MB"
+        echo "Free Memory    : ${free_mem} MB"
+        echo "Memory Usage   : ${mem_percent}%"
+        echo "MAC Address    : $mac_addr"
+        echo "Disk_Total     : $disk_total"
+        echo "Disk_Used      : $disk_used"
+        echo "Disk_Available : $disk_avail"
+        echo "Disk_Usage     : $disk_usage"
       register: result
 
     - name: Show clean vertical output like YAML
