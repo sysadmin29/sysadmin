@@ -1,5 +1,5 @@
 ---
-- name: Get Veeam Backup Job Status, Restore Point Count, and Repository
+- name: Get Veeam Backup Job Status, Restore Point Count, and Repository (fixed)
   hosts: veeam_server
   gather_facts: no
   tasks:
@@ -9,7 +9,7 @@
         script: |
           Add-PSSnapin VeeamPSSnapIn -ErrorAction SilentlyContinue
 
-          # Get all backup jobs (only enabled)
+          # Get all enabled backup jobs
           $jobs = Get-VBRJob | Where-Object { $_.JobType -eq "Backup" -and $_.IsScheduleEnabled -eq $true }
 
           $jobSummaries = @()
@@ -20,13 +20,24 @@
               $lastSession = $sessions | Select-Object -First 1
               if ($null -eq $lastSession -or $lastSession.EndTime -eq [datetime]'1900-01-01') { continue }
 
-              # Get backup and its repository
+              # Get backup object and repository (fixed logic)
               $backup = Get-VBRBackup | Where-Object { $_.JobName -eq $job.Name }
               $restoreCount = 0
               $repository = "Unknown"
+
               if ($backup) {
                   $restoreCount = (Get-VBRRestorePoint -Backup $backup | Measure-Object).Count
-                  $repository = $backup.Repository.Name
+
+                  try {
+                      $storage = $backup.GetStorages() | Select-Object -First 1
+                      if ($storage -and $storage.Repository) {
+                          $repository = $storage.Repository.Name
+                      } elseif ($backup.RepositoryName) {
+                          $repository = $backup.RepositoryName
+                      }
+                  } catch {
+                      $repository = "Unknown"
+                  }
               }
 
               $jobSummaries += [PSCustomObject]@{
@@ -39,7 +50,7 @@
               }
           }
 
-          # Keep only the latest entry per job name
+          # Keep only the latest per job
           $uniqueJobs = $jobSummaries | Sort-Object 'Job Name', EndTime -Descending | Group-Object 'Job Name' | ForEach-Object { $_.Group | Select-Object -First 1 }
 
           return $uniqueJobs
