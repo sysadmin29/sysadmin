@@ -1,10 +1,10 @@
 ---
-- name: Get Veeam Backup Job Status, Restore Points, and Repository with Type
+- name: Get Veeam Backup Job Status, Restore Points, Repository, and Type (V12.3)
   hosts: veeam_server
   gather_facts: no
   tasks:
 
-    - name: Run PowerShell to get latest unique backup jobs with restore point count, repository, and type
+    - name: Run PowerShell to get latest backup job info including repository and type
       ansible.windows.win_powershell:
         script: |
           Add-PSSnapin VeeamPSSnapIn -ErrorAction SilentlyContinue
@@ -21,25 +21,29 @@
 
               $backup = Get-VBRBackup | Where-Object { $_.JobName -eq $job.Name }
               $restoreCount = 0
+              if ($backup) {
+                  $restoreCount = (Get-VBRRestorePoint -Backup $backup | Measure-Object).Count
+              }
+
               $repository = "Unknown"
               $repoType = "Unknown"
 
-              if ($backup) {
-                  $restoreCount = (Get-VBRRestorePoint -Backup $backup | Measure-Object).Count
-
+              # ✅ Veeam 12.3 method to get repository name
+              try {
+                  $targetRepo = $job.GetTargetRepository()
+                  if ($targetRepo -ne $null) {
+                      $repository = $targetRepo.Name
+                      $repoType = $targetRepo.TypeDisplay
+                  }
+              } catch {
+                  # fallback - sometimes Info property still holds repo name
                   try {
-                      $storage = $backup.GetStorages() | Select-Object -First 1
-                      if ($storage -and $storage.RepositoryId) {
-                          $repoObj = $repos | Where-Object { $_.Id -eq $storage.RepositoryId }
+                      if ($job.Info.TargetRepositoryName) {
+                          $repository = $job.Info.TargetRepositoryName
+                          $repoObj = $repos | Where-Object { $_.Name -eq $repository }
                           if ($repoObj) {
-                              $repository = $repoObj.Name
                               $repoType = $repoObj.TypeDisplay
                           }
-                      } elseif ($storage -and $storage.Extent -and $storage.Extent.Repository) {
-                          $repository = $storage.Extent.Repository.Name
-                          $repoType = $storage.Extent.Repository.TypeDisplay
-                      } elseif ($backup.RepositoryName) {
-                          $repository = $backup.RepositoryName
                       }
                   } catch {
                       $repository = "Unknown"
@@ -63,6 +67,6 @@
 
       register: veeam_status
 
-    - name: Display Veeam backup job status with restore count, repository, and type
+    - name: Display Veeam backup job status with restore count and repository type
       debug:
         msg: "{{ veeam_status.output }}"
