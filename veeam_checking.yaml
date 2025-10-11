@@ -1,51 +1,45 @@
 ---
-- name: Check Veeam Backup & Replication job status
+- name: Get Veeam Backup Job Status and Restore Point Count (Clean Version)
   hosts: veeam_server
   gather_facts: no
-
   tasks:
-    - name: Ensure Veeam PowerShell module is loaded
-      win_shell: |
-        $modulePath = "C:\Program Files\Veeam\Backup and Replication\Console\Veeam.Backup.PowerShell\Veeam.Backup.PowerShell.psd1"
-        if (Test-Path $modulePath) {
-            Import-Module $modulePath -ErrorAction Stop
-            Write-Output "Veeam PowerShell module loaded successfully."
-        } else {
-            Write-Error "Veeam PowerShell module not found at $modulePath"
-        }
 
-    - name: Get readable Veeam backup job status with restore point count
-      win_shell: |
-        Import-Module "C:\Program Files\Veeam\Backup and Replication\Console\Veeam.Backup.PowerShell\Veeam.Backup.PowerShell.psd1" -ErrorAction Stop
+    - name: Run PowerShell to get latest unique backup jobs and restore point count
+      ansible.windows.win_powershell:
+        script: |
+          Add-PSSnapin VeeamPSSnapIn -ErrorAction SilentlyContinue
 
-        $sessions = Get-VBRBackupSession | Sort-Object EndTime -Descending | Select-Object -First 10
-        $backups = Get-VBRBackup
-        $results = @()
+          # Get all Veeam jobs and their last session
+          $jobs = Get-VBRJob | Where-Object { $_.JobType -eq "Backup" -and $_.IsScheduleEnabled -eq $true }
 
-        foreach ($session in $sessions) {
-            $status = switch ($session.Result.ToString()) {
-                "Success" { "Success" }
-                "Warning" { "Warning" }
-                "Failed"  { "Failed" }
-                default   { "Unknown ($($session.Result))" }
-            }
+          $jobSummaries = @()
 
-            # Try to find backup matching the job
-            $backup = $backups | Where-Object { $_.JobName -eq $session.JobName }
-            $rpCount = if ($backup) { ($backup | Get-VBRRestorePoint).Count } else { 0 }
+          foreach ($job in $jobs) {
+              $sessions = Get-VBRBackupSession | Where-Object { $_.JobName -eq $job.Name } | Sort-Object -Property EndTime -Descending
+              $lastSession = $sessions | Select-Object -First 1
 
-            $results += [PSCustomObject]@{
-                "Job Name"      = $session.JobName
-                "Result"        = $status
-                "RestorePoints" = [int]$rpCount
-                "StartTime"     = $session.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
-                "EndTime"       = $session.EndTime.ToString("yyyy-MM-dd HH:mm:ss")
-            }
-        }
+              # Skip invalid/empty sessions
+              if ($null -eq $lastSession -or $lastSession.EndTime -eq [datetime]'1900-01-01') { continue }
 
-        $results | ConvertTo-Json -Compress
-      register: veeam_jobs
+              # Get restore points for the job (unique)
+              $restorePoints = (Get-VBRRestorePoint | Where-Object { $_.JobName -eq $job.Name }).Count
 
-    - name: Display Veeam backup job status with restore count
+              $jobSummaries += [PSCustomObject]@{
+                  'Job Name'      = $job.Name
+                  'Result'        = $lastSession.Result
+                  'StartTime'     = $lastSession.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
+                  'EndTime'       = $lastSession.EndTime.ToString("yyyy-MM-dd HH:mm:ss")
+                  'RestorePoints' = $restorePoints
+              }
+          }
+
+          # Remove duplicates by job name and keep the latest entry only
+          $uniqueJobs = $jobSummaries | Sort-Object 'Job Name', EndTime -Descending | Group-Object 'Job Name' | ForEach-Object { $_.Group | Select-Object -First 1 }
+
+          return $uniqueJobs
+
+      register: veeam_status
+
+    - name: Display Veeam backup job status with restore count (unique only)
       debug:
-        msg: "{{ veeam_jobs.stdout | from_json }}"
+        msg: "{{ veeam_status.output }}"
