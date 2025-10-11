@@ -19,7 +19,7 @@
         Import-Module "C:\Program Files\Veeam\Backup and Replication\Console\Veeam.Backup.PowerShell\Veeam.Backup.PowerShell.psd1" -ErrorAction Stop
 
         $sessions = Get-VBRBackupSession | Sort-Object EndTime -Descending | Select-Object -First 10
-        $restorePoints = Get-VBRRestorePoint
+        $backups = Get-VBRBackup
         $results = @()
 
         foreach ($session in $sessions) {
@@ -30,8 +30,9 @@
                 default   { "Unknown ($($session.Result))" }
             }
 
-            # Count restore points matching job name
-            $rpCount = ($restorePoints | Where-Object { $_.GetJob().Name -eq $session.JobName }).Count
+            # Try to find backup matching the job
+            $backup = $backups | Where-Object { $_.JobName -eq $session.JobName }
+            $rpCount = if ($backup) { ($backup | Get-VBRRestorePoint).Count } else { 0 }
 
             $results += [PSCustomObject]@{
                 "Job Name"      = $session.JobName
