@@ -1,20 +1,16 @@
 ---
 - name: Check Veeam Backup & Replication job status
-  hosts: 10.50.20.53
+  hosts: veeam_server
   gather_facts: no
-  vars:
-    veeam_snapin: "VeeamPSSnapIn"
 
   tasks:
-    - name: Ensure Veeam PowerShell snap-in is loaded
+    - name: Import Veeam PowerShell module
       win_shell: |
-        if (-not (Get-PSSnapin -Name {{ veeam_snapin }} -ErrorAction SilentlyContinue)) {
-          Add-PSSnapin {{ veeam_snapin }}
-        }
+        Import-Module Veeam.Backup.PowerShell -ErrorAction Stop
 
     - name: Get last 10 Veeam backup job sessions
       win_shell: |
-        Add-PSSnapin {{ veeam_snapin }} -ErrorAction SilentlyContinue
+        Import-Module Veeam.Backup.PowerShell -ErrorAction SilentlyContinue
         $sessions = Get-VBRBackupSession | Sort-Object EndTime -Descending | Select-Object -First 10
         $output = @()
         foreach ($s in $sessions) {
