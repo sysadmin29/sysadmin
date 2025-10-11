@@ -4,27 +4,37 @@
   gather_facts: no
 
   tasks:
-    - name: Import Veeam PowerShell module
+    - name: Ensure Veeam PowerShell module is loaded
       win_shell: |
-        Import-Module Veeam.Backup.PowerShell -ErrorAction Stop
-
-    - name: Get last 10 Veeam backup job sessions
-      win_shell: |
-        Import-Module Veeam.Backup.PowerShell -ErrorAction SilentlyContinue
-        $sessions = Get-VBRBackupSession | Sort-Object EndTime -Descending | Select-Object -First 10
-        $output = @()
-        foreach ($s in $sessions) {
-          $output += [PSCustomObject]@{
-            JobName = $s.JobName
-            State = $s.State
-            Result = $s.Result
-            StartTime = $s.CreationTime
-            EndTime = $s.EndTime
-          }
+        $modulePath = "C:\Program Files\Veeam\Backup and Replication\Console\Veeam.Backup.PowerShell\Veeam.Backup.PowerShell.psd1"
+        if (Test-Path $modulePath) {
+            Import-Module $modulePath -ErrorAction Stop
+            Write-Output "Veeam PowerShell module loaded successfully."
+        } else {
+            Write-Error "Veeam PowerShell module not found at $modulePath"
         }
-        $output | ConvertTo-Json -Depth 2
-      register: veeam_sessions
+
+    - name: Get readable Veeam backup job status
+      win_shell: |
+        $jobs = Get-VBRBackupSession | Sort-Object EndTime -Descending | Select-Object -First 10
+        $results = @()
+        foreach ($job in $jobs) {
+            $status = switch ($job.Result) {
+                0 { "Success" }
+                1 { "Warning" }
+                2 { "Failed" }
+                default { "Unknown" }
+            }
+            $results += [PSCustomObject]@{
+                "Job Name"  = $job.JobName
+                "Result"    = $status
+                "StartTime" = $job.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
+                "EndTime"   = $job.EndTime.ToString("yyyy-MM-dd HH:mm:ss")
+            }
+        }
+        $results | ConvertTo-Json -Compress
+      register: veeam_jobs
 
     - name: Display Veeam backup job status
       debug:
-        msg: "{{ veeam_sessions.stdout | from_json }}"
+        msg: "{{ veeam_jobs.stdout | from_json }}"
