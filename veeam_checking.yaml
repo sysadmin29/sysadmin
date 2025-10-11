@@ -1,31 +1,32 @@
 ---
-- name: Get Veeam Backup Job Status and Restore Point Count (Clean Version)
+- name: Get Veeam Backup Job Status, Restore Point Count, and Repository
   hosts: veeam_server
   gather_facts: no
   tasks:
 
-    - name: Run PowerShell to get latest unique backup jobs and restore point count
+    - name: Run PowerShell to get latest unique backup jobs with restore point count and repository
       ansible.windows.win_powershell:
         script: |
           Add-PSSnapin VeeamPSSnapIn -ErrorAction SilentlyContinue
 
-          # Get all backup jobs
+          # Get all backup jobs (only enabled)
           $jobs = Get-VBRJob | Where-Object { $_.JobType -eq "Backup" -and $_.IsScheduleEnabled -eq $true }
 
           $jobSummaries = @()
 
           foreach ($job in $jobs) {
-              # Get latest session per job
+              # Get latest session
               $sessions = Get-VBRBackupSession | Where-Object { $_.JobName -eq $job.Name } | Sort-Object EndTime -Descending
               $lastSession = $sessions | Select-Object -First 1
-
               if ($null -eq $lastSession -or $lastSession.EndTime -eq [datetime]'1900-01-01') { continue }
 
-              # Match restore points by the job's backup object, not just job name
+              # Get backup and its repository
               $backup = Get-VBRBackup | Where-Object { $_.JobName -eq $job.Name }
               $restoreCount = 0
+              $repository = "Unknown"
               if ($backup) {
                   $restoreCount = (Get-VBRRestorePoint -Backup $backup | Measure-Object).Count
+                  $repository = $backup.Repository.Name
               }
 
               $jobSummaries += [PSCustomObject]@{
@@ -34,16 +35,17 @@
                   'StartTime'     = $lastSession.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
                   'EndTime'       = $lastSession.EndTime.ToString("yyyy-MM-dd HH:mm:ss")
                   'RestorePoints' = $restoreCount
+                  'Repository'    = $repository
               }
           }
 
-          # Keep only the latest per job name
+          # Keep only the latest entry per job name
           $uniqueJobs = $jobSummaries | Sort-Object 'Job Name', EndTime -Descending | Group-Object 'Job Name' | ForEach-Object { $_.Group | Select-Object -First 1 }
 
           return $uniqueJobs
 
       register: veeam_status
 
-    - name: Display Veeam backup job status with restore count (unique only)
+    - name: Display Veeam backup job status with restore count and repository (unique only)
       debug:
         msg: "{{ veeam_status.output }}"
