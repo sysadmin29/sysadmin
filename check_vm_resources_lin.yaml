@@ -1,12 +1,15 @@
 ---
-- name: Check CPU, memory, and MAC address
+- name: Check CPU, memory, MAC, and IP address
   hosts: all
   gather_facts: no
   tasks:
-    - name: Get CPU, memory, MAC address, and usage percentages
+    - name: Get CPU, memory, MAC, IP address, and usage percentages
       shell: |
         cpu_cores=$(nproc)
         hostname=$(hostname)
+        
+        # Get first non-loopback IP (IPv4)
+        ip_addr=$(hostname -I | awk '{print $1}')
 
         total_mem=$(free -m | awk '/^Mem:/ { print $2 }')
         used_mem=$(free -m | awk '/^Mem:/ { print $3 }')
@@ -23,6 +26,7 @@
         disk_usage=$(df -h / | awk 'NR==2 {print $5}')
 
         echo "Hostname       : $hostname"
+        echo "IP Address     : $ip_addr"
         echo "CPU Cores      : $cpu_cores"
         echo "CPU Usage      : ${cpu_percent}%"
         echo "Total Memory   : ${total_mem} MB"
