@@ -14,34 +14,37 @@
             Write-Error "Veeam PowerShell module not found at $modulePath"
         }
 
-    - name: Get readable Veeam backup job status
+    - name: Get readable Veeam backup job status with restore point count
       win_shell: |
-        # Get the most recent backup sessions
-        $jobs = Get-VBRBackupSession | Sort-Object EndTime -Descending | Select-Object -First 10
+        # Get recent sessions and restore point info
+        $sessions = Get-VBRBackupSession | Sort-Object EndTime -Descending | Select-Object -First 10
+        $backups = Get-VBRBackup
         $results = @()
 
-        foreach ($job in $jobs) {
-            # Interpret the job result correctly (string values in newer Veeam versions)
-            $status = switch ($job.Result.ToString()) {
+        foreach ($session in $sessions) {
+            $status = switch ($session.Result.ToString()) {
                 "Success" { "Success" }
                 "Warning" { "Warning" }
                 "Failed"  { "Failed" }
-                default   { "Unknown ($($job.Result))" }
+                default   { "Unknown ($($session.Result))" }
             }
 
-            # Build readable job info
+            # Match job to backup to get restore points
+            $backup = $backups | Where-Object { $_.JobName -eq $session.JobName }
+            $restoreCount = if ($backup) { ($backup.GetAllRestorePoints()).Count } else { 0 }
+
             $results += [PSCustomObject]@{
-                "Job Name"  = $job.JobName
-                "Result"    = $status
-                "StartTime" = $job.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
-                "EndTime"   = $job.EndTime.ToString("yyyy-MM-dd HH:mm:ss")
+                "Job Name"      = $session.JobName
+                "Result"        = $status
+                "RestorePoints" = $restoreCount
+                "StartTime"     = $session.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
+                "EndTime"       = $session.EndTime.ToString("yyyy-MM-dd HH:mm:ss")
             }
         }
 
-        # Output as compact JSON for Ansible
         $results | ConvertTo-Json -Compress
       register: veeam_jobs
 
-    - name: Display Veeam backup job status
+    - name: Display Veeam backup job status with restore count
       debug:
         msg: "{{ veeam_jobs.stdout | from_json }}"
