@@ -1,42 +1,49 @@
 ---
-- name: Get Veeam Backup Job Status, Restore Point Count, and Repository (fixed)
+- name: Get Veeam Backup Job Status, Restore Points, and Repository with Type
   hosts: veeam_server
   gather_facts: no
   tasks:
 
-    - name: Run PowerShell to get latest unique backup jobs with restore point count and repository
+    - name: Run PowerShell to get latest unique backup jobs with restore point count, repository, and type
       ansible.windows.win_powershell:
         script: |
           Add-PSSnapin VeeamPSSnapIn -ErrorAction SilentlyContinue
 
-          # Get all enabled backup jobs
+          $repos = Get-VBRBackupRepository
           $jobs = Get-VBRJob | Where-Object { $_.JobType -eq "Backup" -and $_.IsScheduleEnabled -eq $true }
 
           $jobSummaries = @()
 
           foreach ($job in $jobs) {
-              # Get latest session
               $sessions = Get-VBRBackupSession | Where-Object { $_.JobName -eq $job.Name } | Sort-Object EndTime -Descending
               $lastSession = $sessions | Select-Object -First 1
               if ($null -eq $lastSession -or $lastSession.EndTime -eq [datetime]'1900-01-01') { continue }
 
-              # Get backup object and repository (fixed logic)
               $backup = Get-VBRBackup | Where-Object { $_.JobName -eq $job.Name }
               $restoreCount = 0
               $repository = "Unknown"
+              $repoType = "Unknown"
 
               if ($backup) {
                   $restoreCount = (Get-VBRRestorePoint -Backup $backup | Measure-Object).Count
 
                   try {
                       $storage = $backup.GetStorages() | Select-Object -First 1
-                      if ($storage -and $storage.Repository) {
-                          $repository = $storage.Repository.Name
+                      if ($storage -and $storage.RepositoryId) {
+                          $repoObj = $repos | Where-Object { $_.Id -eq $storage.RepositoryId }
+                          if ($repoObj) {
+                              $repository = $repoObj.Name
+                              $repoType = $repoObj.TypeDisplay
+                          }
+                      } elseif ($storage -and $storage.Extent -and $storage.Extent.Repository) {
+                          $repository = $storage.Extent.Repository.Name
+                          $repoType = $storage.Extent.Repository.TypeDisplay
                       } elseif ($backup.RepositoryName) {
                           $repository = $backup.RepositoryName
                       }
                   } catch {
                       $repository = "Unknown"
+                      $repoType = "Unknown"
                   }
               }
 
@@ -47,16 +54,15 @@
                   'EndTime'       = $lastSession.EndTime.ToString("yyyy-MM-dd HH:mm:ss")
                   'RestorePoints' = $restoreCount
                   'Repository'    = $repository
+                  'RepoType'      = $repoType
               }
           }
 
-          # Keep only the latest per job
           $uniqueJobs = $jobSummaries | Sort-Object 'Job Name', EndTime -Descending | Group-Object 'Job Name' | ForEach-Object { $_.Group | Select-Object -First 1 }
-
           return $uniqueJobs
 
       register: veeam_status
 
-    - name: Display Veeam backup job status with restore count and repository (unique only)
+    - name: Display Veeam backup job status with restore count, repository, and type
       debug:
         msg: "{{ veeam_status.output }}"
