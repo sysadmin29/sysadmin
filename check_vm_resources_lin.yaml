@@ -6,8 +6,8 @@
     - name: Get CPU, memory, MAC address, and usage percentages
       shell: |
         cpu_cores=$(nproc)
-        cpu_model=$(lscpu | grep "Model name" | awk -F: '{print $2}' | sed 's/^ //')
-        
+        hostname=$(hostname)
+
         total_mem=$(free -m | awk '/^Mem:/ { print $2 }')
         used_mem=$(free -m | awk '/^Mem:/ { print $3 }')
         free_mem=$(free -m | awk '/^Mem:/ { print $4 }')
@@ -22,8 +22,8 @@
         disk_avail=$(df -h / | awk 'NR==2 {print $4}')
         disk_usage=$(df -h / | awk 'NR==2 {print $5}')
 
+        echo "Hostname       : $hostname"
         echo "CPU Cores      : $cpu_cores"
-        echo "CPU Model      : $cpu_model"
         echo "CPU Usage      : ${cpu_percent}%"
         echo "Total Memory   : ${total_mem} MB"
         echo "Used Memory    : ${used_mem} MB"
