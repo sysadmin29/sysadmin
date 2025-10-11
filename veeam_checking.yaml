@@ -16,7 +16,6 @@
 
     - name: Get readable Veeam backup job status with restore point count
       win_shell: |
-        # Get recent sessions and restore point info
         $sessions = Get-VBRBackupSession | Sort-Object EndTime -Descending | Select-Object -First 10
         $backups = Get-VBRBackup
         $results = @()
@@ -29,14 +28,24 @@
                 default   { "Unknown ($($session.Result))" }
             }
 
-            # Match job to backup to get restore points
+            # Match backup to session by job name
             $backup = $backups | Where-Object { $_.JobName -eq $session.JobName }
-            $restoreCount = if ($backup) { ($backup.GetAllRestorePoints()).Count } else { 0 }
+
+            # Get restore point count safely
+            $restoreCount = 0
+            if ($backup) {
+                try {
+                    $restorePoints = $backup.GetAllRestorePoints()
+                    if ($restorePoints) { $restoreCount = $restorePoints.Count }
+                } catch {
+                    $restoreCount = 0
+                }
+            }
 
             $results += [PSCustomObject]@{
                 "Job Name"      = $session.JobName
                 "Result"        = $status
-                "RestorePoints" = $restoreCount
+                "RestorePoints" = [int]$restoreCount
                 "StartTime"     = $session.CreationTime.ToString("yyyy-MM-dd HH:mm:ss")
                 "EndTime"       = $session.EndTime.ToString("yyyy-MM-dd HH:mm:ss")
             }
