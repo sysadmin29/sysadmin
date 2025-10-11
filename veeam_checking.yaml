@@ -16,15 +16,20 @@
 
     - name: Get readable Veeam backup job status
       win_shell: |
+        # Get the most recent backup sessions
         $jobs = Get-VBRBackupSession | Sort-Object EndTime -Descending | Select-Object -First 10
         $results = @()
+
         foreach ($job in $jobs) {
-            $status = switch ($job.Result) {
-                0 { "Success" }
-                1 { "Warning" }
-                2 { "Failed" }
-                default { "Unknown" }
+            # Interpret the job result correctly (string values in newer Veeam versions)
+            $status = switch ($job.Result.ToString()) {
+                "Success" { "Success" }
+                "Warning" { "Warning" }
+                "Failed"  { "Failed" }
+                default   { "Unknown ($($job.Result))" }
             }
+
+            # Build readable job info
             $results += [PSCustomObject]@{
                 "Job Name"  = $job.JobName
                 "Result"    = $status
@@ -32,6 +37,8 @@
                 "EndTime"   = $job.EndTime.ToString("yyyy-MM-dd HH:mm:ss")
             }
         }
+
+        # Output as compact JSON for Ansible
         $results | ConvertTo-Json -Compress
       register: veeam_jobs
 
