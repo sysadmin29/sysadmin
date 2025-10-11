@@ -1,6 +1,6 @@
 ---
 - name: Check Veeam Backup & Replication job status
-  hosts: veeam_server
+  hosts: 10.50.20.53
   gather_facts: no
   vars:
     veeam_snapin: "VeeamPSSnapIn"
