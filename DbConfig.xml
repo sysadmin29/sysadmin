@@ -3,6 +3,6 @@
   <ServerName>localhost</ServerName>
   <Port>5432</Port>
   <DatabaseName>VeeamBackup</DatabaseName>
-  <UserName>veeam</UserName>
-  <Password>your_db_password_here</Password>
+  <UserName>veeamservice</UserName>
+  <Password>gxfnD5Kc+Cn3BVwA</Password>
 </DbConfig>
