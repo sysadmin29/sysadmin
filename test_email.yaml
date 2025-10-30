@@ -4,4 +4,4 @@
   tasks:
     - name: Print test message
       debug:
-        msg: "This is a Semaphore email test run from {{ ansible_date_time.date }}"
+        msg: "This is a Semaphore email test run at {{ lookup('pipe', 'date') }}"
