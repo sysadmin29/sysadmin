@@ -1,7 +1,12 @@
+# test-email.yaml
 - name: Test Email Notification
   hosts: localhost
   gather_facts: no
   tasks:
-    - name: Print test message
+    - name: Force a change event for email test
+      command: /bin/true
+      changed_when: true
+
+    - name: Print message
       debug:
-        msg: "This is a Semaphore email test run at {{ lookup('pipe', 'date') }}"
+        msg: "Email notification test complete"
