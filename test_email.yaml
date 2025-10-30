@@ -1,4 +1,3 @@
-# test-email.yaml
 - name: Test Email Notification
   hosts: localhost
   gather_facts: no
