@@ -1,8 +1,0 @@
-<DbConfig>
-  <DatabaseEngine>PostgreSQL</DatabaseEngine>
-  <ServerName>localhost</ServerName>
-  <Port>5432</Port>
-  <DatabaseName>VeeamBackup</DatabaseName>
-  <UserName>veeamservice</UserName>
-  <Password>gxfnD5Kc+Cn3BVwA</Password>
-</DbConfig>

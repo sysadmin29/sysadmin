@@ -1,0 +1,7 @@
+- name: Test Email Notification
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Print test message
+      debug:
+        msg: "This is a Semaphore email test run from {{ ansible_date_time.date }}"
